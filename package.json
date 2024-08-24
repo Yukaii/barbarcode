@@ -1,0 +1,11 @@
+{
+  "name": "barbarcode",
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "robotjs": "^0.6.0"
+  }
+}
