@@ -1,13 +1,15 @@
-import { Server as WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
 import express from 'express';
 import { createServer } from 'http';
 import { parse } from 'toml';
 import { readFileSync } from 'fs';
 import { program } from 'commander';
 import QRCode from '@paulmillr/qr';
-import { keyTap, setKeyboardDelay, typeString } from 'robotjs';
+import robotjs from 'robotjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+const { keyTap, setKeyboardDelay, typeString } = robotjs
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,7 +21,7 @@ const config = parse(readFileSync('./config.toml', 'utf-8'));
 program
   .version('1.0.0')
   .option('-p, --port <number>', 'port to run the server on', 8080)
-  .option('-s, --session <string>', 'session identifier')
+  .option('-s, --session <string>', 'session identifier', "default")
   .parse(process.argv);
 
 const options = program.opts();
@@ -50,11 +52,13 @@ const qr = QRCode.encode(connectionInfo);
 console.log('Scan this QR code to connect:');
 console.log(qr.toString());
 
-wss.on('connection', (ws) => {
+wss.on('connection', function connection(ws) {
   console.log('Client connected');
 
-  ws.on('message', (message) => {
-    const barcode = message.toString();
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    const barcode = data.toString();
     console.log('Received barcode:', barcode);
 
     const keystrokePattern = sessionPattern.replace('{barcode}', barcode);
