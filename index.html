@@ -39,6 +39,14 @@
         #result_strip ul.thumbnails > li .thumbnail .caption {
             text-align: center;
         }
+
+        #debug-log {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -46,15 +54,27 @@
     <div id="result_strip">
         <ul class="thumbnails"></ul>
     </div>
+    <div id="debug-log">
+        <h3>Debug Log:</h3>
+        <pre id="log-content"></pre>
+    </div>
     <script>
+        function debugLog(message) {
+            var logContent = $('#log-content');
+            logContent.append(new Date().toISOString() + ': ' + message + '\n');
+            logContent.scrollTop(logContent[0].scrollHeight);
+        }
+
         $(function() {
             var App = {
                 init: function() {
+                    debugLog('Initializing Quagga...');
                     Quagga.init(this.state, function(err) {
                         if (err) {
-                            console.log(err);
+                            debugLog('Quagga initialization error: ' + err);
                             return;
                         }
+                        debugLog('Quagga initialized successfully');
                         App.attachListeners();
                         Quagga.start();
                     });
@@ -65,11 +85,13 @@
                     $(".controls").on("click", "button.stop", function(e) {
                         e.preventDefault();
                         Quagga.stop();
+                        debugLog('Quagga stopped');
                     });
 
                     $(".controls").on("click", "button.start", function(e) {
                         e.preventDefault();
                         Quagga.start();
+                        debugLog('Quagga started');
                     });
                 },
                 state: {
@@ -89,10 +111,19 @@
                     numOfWorkers: 2,
                     frequency: 10,
                     decoder: {
-                        readers : [{
-                            format: "code_128_reader",
-                            config: {}
-                        }]
+                        readers : [
+                            {format: "code_128_reader", config: {}},
+                            {format: "ean_reader", config: {}},
+                            {format: "ean_8_reader", config: {}},
+                            {format: "code_39_reader", config: {}},
+                            {format: "code_39_vin_reader", config: {}},
+                            {format: "codabar_reader", config: {}},
+                            {format: "upc_reader", config: {}},
+                            {format: "upc_e_reader", config: {}},
+                            {format: "i2of5_reader", config: {}},
+                            {format: "2of5_reader", config: {}},
+                            {format: "code_93_reader", config: {}}
+                        ]
                     },
                     locate: true
                 },
@@ -127,6 +158,7 @@
 
             Quagga.onDetected(function(result) {
                 var code = result.codeResult.code;
+                debugLog('Barcode detected: ' + code);
 
                 if (App.lastResult !== code) {
                     App.lastResult = code;
@@ -140,18 +172,24 @@
                     // Send the code to the server via WebSocket
                     if (window.websocket && window.websocket.readyState === WebSocket.OPEN) {
                         window.websocket.send(code);
+                        debugLog('Sent to server: ' + code);
+                    } else {
+                        debugLog('WebSocket not open, could not send: ' + code);
                     }
                 }
             });
         });
 
-        // WebSocket connection (add this part to connect to your server)
+        // WebSocket connection
         window.websocket = new WebSocket('wss://' + window.location.host);
         window.websocket.onopen = function() {
-            console.log('Connected to WebSocket server');
+            debugLog('Connected to WebSocket server');
         };
         window.websocket.onerror = function(error) {
-            console.error('WebSocket Error: ' + error);
+            debugLog('WebSocket Error: ' + error);
+        };
+        window.websocket.onclose = function(event) {
+            debugLog('WebSocket connection closed: ' + event.reason);
         };
     </script>
 </body>

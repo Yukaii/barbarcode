@@ -76,6 +76,7 @@ wss.on('connection', function connection(ws) {
     console.log('Received barcode:', barcode);
 
     const keystrokePattern = sessionPattern.replace('{barcode}', barcode);
+    console.log(keystrokePattern, 'keystrokePattern');
     executeKeystrokes(keystrokePattern);
   });
 });
