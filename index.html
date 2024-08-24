@@ -2,61 +2,157 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Barcode Scanner Client</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <style>
+        #interactive.viewport {
+            position: relative;
+            width: 100%;
+            height: 300px;
+        }
+        #interactive.viewport > canvas, #interactive.viewport > video {
+            max-width: 100%;
+            width: 100%;
+        }
+        canvas.drawing, canvas.drawingBuffer {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        #result_strip {
+            margin-top: 10px;
+        }
+        #result_strip ul.thumbnails > li {
+            width: 150px;
+            display: inline-block;
+            margin: 4px;
+        }
+        #result_strip ul.thumbnails > li .thumbnail {
+            padding: 5px;
+            border: 1px dashed #ddd;
+        }
+        #result_strip ul.thumbnails > li .thumbnail img {
+            max-width: 140px;
+        }
+        #result_strip ul.thumbnails > li .thumbnail .caption {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <div id="qr-reader" style="width: 600px"></div>
-    <div id="barcode-scanner" style="width: 600px"></div>
+    <div id="interactive" class="viewport"></div>
+    <div id="result_strip">
+        <ul class="thumbnails"></ul>
+    </div>
     <script>
-        let websocket;
-
-        function onScanSuccess(decodedText, decodedResult) {
-            // This will be called when QR code is scanned successfully
-            console.log(`QR Code detected: ${decodedText}`);
-            const connectionInfo = JSON.parse(decodedText);
-            websocket = new WebSocket(connectionInfo.url);
-
-            websocket.onopen = () => {
-                console.log('Connected to server');
-                html5QrCode.stop();
-                startBarcodeScanner();
-            };
-        }
-
-        const html5QrCode = new Html5Qrcode("qr-reader");
-        const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
-        html5QrCode.start({ facingMode: "environment" }, qrConfig, onScanSuccess);
-
-        function startBarcodeScanner() {
-            Quagga.init({
-                inputStream : {
-                    name : "Live",
-                    type : "LiveStream",
-                    target: document.querySelector('#barcode-scanner')
+        $(function() {
+            var App = {
+                init: function() {
+                    Quagga.init(this.state, function(err) {
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+                        App.attachListeners();
+                        Quagga.start();
+                    });
                 },
-                decoder : {
-                    readers : ["ean_reader", "ean_8_reader", "code_128_reader"]
+                attachListeners: function() {
+                    var self = this;
+
+                    $(".controls").on("click", "button.stop", function(e) {
+                        e.preventDefault();
+                        Quagga.stop();
+                    });
+
+                    $(".controls").on("click", "button.start", function(e) {
+                        e.preventDefault();
+                        Quagga.start();
+                    });
+                },
+                state: {
+                    inputStream: {
+                        type : "LiveStream",
+                        constraints: {
+                            width: {min: 640},
+                            height: {min: 480},
+                            facingMode: "environment",
+                            aspectRatio: {min: 1, max: 2}
+                        }
+                    },
+                    locator: {
+                        patchSize: "medium",
+                        halfSample: true
+                    },
+                    numOfWorkers: 2,
+                    frequency: 10,
+                    decoder: {
+                        readers : [{
+                            format: "code_128_reader",
+                            config: {}
+                        }]
+                    },
+                    locate: true
+                },
+                lastResult : null
+            };
+
+            App.init();
+
+            Quagga.onProcessed(function(result) {
+                var drawingCtx = Quagga.canvas.ctx.overlay,
+                    drawingCanvas = Quagga.canvas.dom.overlay;
+
+                if (result) {
+                    if (result.boxes) {
+                        drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                        result.boxes.filter(function (box) {
+                            return box !== result.box;
+                        }).forEach(function (box) {
+                            Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                        });
+                    }
+
+                    if (result.box) {
+                        Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+                    }
+
+                    if (result.codeResult && result.codeResult.code) {
+                        Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+                    }
                 }
-            }, function(err) {
-                if (err) {
-                    console.log(err);
-                    return
-                }
-                console.log("Quagga initialization finished. Ready to start");
-                Quagga.start();
             });
 
-            Quagga.onDetected((result) => {
-                const code = result.codeResult.code;
-                console.log("Detected barcode:", code);
-                if (websocket && websocket.readyState === WebSocket.OPEN) {
-                    websocket.send(code);
+            Quagga.onDetected(function(result) {
+                var code = result.codeResult.code;
+
+                if (App.lastResult !== code) {
+                    App.lastResult = code;
+                    var $node = null, canvas = Quagga.canvas.dom.image;
+
+                    $node = $('<li><div class="thumbnail"><div class="imgWrapper"><img /></div><div class="caption"><h4 class="code"></h4></div></div></li>');
+                    $node.find("img").attr("src", canvas.toDataURL());
+                    $node.find("h4.code").html(code);
+                    $("#result_strip ul.thumbnails").prepend($node);
+
+                    // Send the code to the server via WebSocket
+                    if (window.websocket && window.websocket.readyState === WebSocket.OPEN) {
+                        window.websocket.send(code);
+                    }
                 }
             });
-        }
+        });
+
+        // WebSocket connection (add this part to connect to your server)
+        window.websocket = new WebSocket('wss://' + window.location.host);
+        window.websocket.onopen = function() {
+            console.log('Connected to WebSocket server');
+        };
+        window.websocket.onerror = function(error) {
+            console.error('WebSocket Error: ' + error);
+        };
     </script>
 </body>
 </html>
