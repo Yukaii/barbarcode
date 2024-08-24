@@ -8,11 +8,28 @@ import encodeQR from '@paulmillr/qr';
 import robotjs from 'robotjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { networkInterfaces } from 'os';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Function to get local IP address
+function getLocalIpAddress() {
+  const nets = networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return 'localhost'; // Fallback to localhost if no suitable IP is found
+}
+
+const localIp = getLocalIpAddress();
 
 // Parse TOML configuration
 const config = parse(readFileSync('./config.toml', 'utf-8'));
@@ -44,12 +61,9 @@ app.use(express.static(path.join(__dirname, '.')));
 const wss = new WebSocketServer({ server });
 
 // Generate QR code with connection info
-const connectionInfo = JSON.stringify({
-  url: `ws://localhost:${options.port}`,
-  session: options.session
-});
-const qr = encodeQR(connectionInfo, 'ascii');
-console.log('Scan this QR code to connect:');
+const webpageUrl = `http://${localIp}:${options.port}`;
+const qr = encodeQR(webpageUrl, 'ascii');
+console.log('Scan this QR code to open the web page:');
 console.log(qr);
 
 wss.on('connection', function connection(ws) {
@@ -65,7 +79,6 @@ wss.on('connection', function connection(ws) {
     executeKeystrokes(keystrokePattern);
   });
 });
-
 function executeKeystrokes(pattern) {
   const keystrokes = pattern.match(/(\{[^}]+\}|[^{]+)/g);
 
@@ -94,8 +107,8 @@ function executeKeystrokes(pattern) {
 }
 
 // Start the server
-server.listen(options.port, () => {
-  console.log(`Server running on http://localhost:${options.port}`);
-  console.log(`WebSocket server running on ws://localhost:${options.port}`);
+server.listen(options.port, '0.0.0.0', () => {
+  console.log(`Server running on http://${localIp}:${options.port}`);
+  console.log(`WebSocket server running on ws://${localIp}:${options.port}`);
   console.log(`Active session: ${options.session}`);
 });
