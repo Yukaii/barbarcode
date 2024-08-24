@@ -16,12 +16,30 @@ The server is a Node.js application that:
 3. Create a `config.toml` file for keystroke mapping (example below)
 4. Run the server: `node server.js -p 8080 -s mysession`
 
+### Session-based Keystroke Pattern Syntax
+
+The `config.toml` file uses the following structure:
+- The `[sessions]` section contains session names and their corresponding keystroke patterns
+- Use `{barcode}` in the pattern to represent the scanned barcode value
+
+Keystroke syntax:
+- `{barcode}`: Placeholder for the scanned barcode value
+- `{enter}`: Enter key
+- `{tab}`: Tab key
+- `{esc}`: Escape key
+- `{delay:ms}`: Delay in milliseconds
+- `{up}`, `{down}`, `{left}`, `{right}`: Arrow keys
+- `{key:X}`: Custom key (where X is the key to be pressed)
+- Any other text is typed as-is
+
 Example `config.toml`:
 
 ```toml
-[keystrokes]
-"123456" = "hello"
-"789012" = "world"
+[sessions]
+inventory_input = "{barcode}{enter}"
+price_check = "{key:F4}{barcode}{enter}"
+data_entry = "SKU:{barcode}{tab}Quantity:"
+complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
 ```
 
 ## Client
@@ -35,6 +53,16 @@ The client is a simple HTML file that:
 1. Open the `client/index.html` file in a mobile browser
 2. Scan the QR code displayed by the server to connect
 3. Start scanning barcodes
+
+### Running a Session
+
+To start a specific session, use the `-s` or `--session` flag when starting the server:
+
+```
+node server.js -p 8080 -s inventory_input
+```
+
+This will start the server using the keystroke pattern defined for the `inventory_input` session in the `config.toml` file.
 
 ## Libraries Used
 

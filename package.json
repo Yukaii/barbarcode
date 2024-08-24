@@ -6,6 +6,10 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "robotjs": "^0.6.0"
+    "@paulmillr/qr": "^0.2.0",
+    "commander": "^12.1.0",
+    "robotjs": "^0.6.0",
+    "toml": "^3.0.0",
+    "ws": "^8.18.0"
   }
 }
