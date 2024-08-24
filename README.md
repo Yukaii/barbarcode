@@ -2,6 +2,10 @@
 
 Barbarcode is a simple, open-source barcode scanning service with a server and a mobile client, both implemented in JavaScript.
 
+## Demo
+
+https://github.com/user-attachments/assets/6905fc00-624b-4bd9-932c-54c056b6a9ef
+
 ## Server
 
 The server is a Node.js application that:
