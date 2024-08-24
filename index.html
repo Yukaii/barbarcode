@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Scanner Client</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+</head>
+<body>
+    <div id="qr-reader" style="width: 600px"></div>
+    <div id="barcode-scanner" style="width: 600px"></div>
+    <script>
+        let websocket;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // This will be called when QR code is scanned successfully
+            console.log(`QR Code detected: ${decodedText}`);
+            const connectionInfo = JSON.parse(decodedText);
+            websocket = new WebSocket(connectionInfo.url);
+
+            websocket.onopen = () => {
+                console.log('Connected to server');
+                html5QrCode.stop();
+                startBarcodeScanner();
+            };
+        }
+
+        const html5QrCode = new Html5Qrcode("qr-reader");
+        const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+        html5QrCode.start({ facingMode: "environment" }, qrConfig, onScanSuccess);
+
+        function startBarcodeScanner() {
+            Quagga.init({
+                inputStream : {
+                    name : "Live",
+                    type : "LiveStream",
+                    target: document.querySelector('#barcode-scanner')
+                },
+                decoder : {
+                    readers : ["ean_reader", "ean_8_reader", "code_128_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    console.log(err);
+                    return
+                }
+                console.log("Quagga initialization finished. Ready to start");
+                Quagga.start();
+            });
+
+            Quagga.onDetected((result) => {
+                const code = result.codeResult.code;
+                console.log("Detected barcode:", code);
+                if (websocket && websocket.readyState === WebSocket.OPEN) {
+                    websocket.send(code);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
