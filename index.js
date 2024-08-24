@@ -1,9 +1,16 @@
-import { Server } from 'ws';
+import { Server as WebSocketServer } from 'ws';
+import express from 'express';
+import { createServer } from 'http';
 import { parse } from 'toml';
 import { readFileSync } from 'fs';
 import { program } from 'commander';
 import QRCode from '@paulmillr/qr';
 import { keyTap, setKeyboardDelay, typeString } from 'robotjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Parse TOML configuration
 const config = parse(readFileSync('./config.toml', 'utf-8'));
@@ -24,10 +31,24 @@ if (!options.session || !config.sessions[options.session]) {
 
 const sessionPattern = config.sessions[options.session];
 
-// WebSocket server setup
-const wss = new Server({ port: options.port });
+// Express app setup
+const app = express();
+const server = createServer(app);
 
-// ... (QR code generation code here)
+// Serve static files (including index.html)
+app.use(express.static(path.join(__dirname, '.')));
+
+// WebSocket server setup
+const wss = new WebSocketServer({ server });
+
+// Generate QR code with connection info
+const connectionInfo = JSON.stringify({
+  url: `ws://localhost:${options.port}`,
+  session: options.session
+});
+const qr = QRCode.encode(connectionInfo);
+console.log('Scan this QR code to connect:');
+console.log(qr.toString());
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -40,9 +61,6 @@ wss.on('connection', (ws) => {
     executeKeystrokes(keystrokePattern);
   });
 });
-
-console.log(`Server running on ws://localhost:${options.port}`);
-console.log(`Active session: ${options.session}`);
 
 function executeKeystrokes(pattern) {
   const keystrokes = pattern.match(/(\{[^}]+\}|[^{]+)/g);
@@ -70,3 +88,10 @@ function executeKeystrokes(pattern) {
     }
   }
 }
+
+// Start the server
+server.listen(options.port, () => {
+  console.log(`Server running on http://localhost:${options.port}`);
+  console.log(`WebSocket server running on ws://localhost:${options.port}`);
+  console.log(`Active session: ${options.session}`);
+});
