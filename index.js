@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import { parse } from 'toml';
 import { readFileSync } from 'fs';
 import { program } from 'commander';
-import QRCode from '@paulmillr/qr';
+import encodeQR from '@paulmillr/qr';
 import robotjs from 'robotjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -48,9 +48,9 @@ const connectionInfo = JSON.stringify({
   url: `ws://localhost:${options.port}`,
   session: options.session
 });
-const qr = QRCode.encode(connectionInfo);
+const qr = encodeQR(connectionInfo, 'ascii');
 console.log('Scan this QR code to connect:');
-console.log(qr.toString());
+console.log(qr);
 
 wss.on('connection', function connection(ws) {
   console.log('Client connected');
