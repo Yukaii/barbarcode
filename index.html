@@ -21,25 +21,6 @@
             left: 0;
             top: 0;
         }
-        #result_strip {
-            margin-top: 10px;
-        }
-        #result_strip ul.thumbnails > li {
-            width: 150px;
-            display: inline-block;
-            margin: 4px;
-        }
-        #result_strip ul.thumbnails > li .thumbnail {
-            padding: 5px;
-            border: 1px dashed #ddd;
-        }
-        #result_strip ul.thumbnails > li .thumbnail img {
-            max-width: 140px;
-        }
-        #result_strip ul.thumbnails > li .thumbnail .caption {
-            text-align: center;
-        }
-
         #debug-log-overlay {
             display: none;
             position: fixed;
@@ -87,9 +68,6 @@
 </head>
 <body>
     <div id="interactive" class="viewport"></div>
-    <div id="result_strip">
-        <ul class="thumbnails"></ul>
-    </div>
     <button id="toggle-debug-log">Toggle Debug Log</button>
     <div id="debug-log-overlay">
         <div id="debug-log">
@@ -209,21 +187,17 @@
 
             Quagga.onDetected(function(result) {
                 var code = result.codeResult.code;
-                debugLog('Barcode detected: ' + code);
+                var format = result.codeResult.format;
+                debugLog('Barcode detected: ' + code + ' (Type: ' + format + ')');
 
                 if (App.lastResult !== code) {
                     App.lastResult = code;
-                    var $node = null, canvas = Quagga.canvas.dom.image;
-
-                    $node = $('<li><div class="thumbnail"><div class="imgWrapper"><img /></div><div class="caption"><h4 class="code"></h4></div></div></li>');
-                    $node.find("img").attr("src", canvas.toDataURL());
-                    $node.find("h4.code").html(code);
-                    $("#result_strip ul.thumbnails").prepend($node);
 
                     // Send the code to the server via WebSocket
                     if (window.websocket && window.websocket.readyState === WebSocket.OPEN) {
-                        window.websocket.send(code);
-                        debugLog('Sent to server: ' + code);
+                        var message = JSON.stringify({code: code, format: format});
+                        window.websocket.send(message);
+                        debugLog('Sent to server: ' + message);
                     } else {
                         debugLog('WebSocket not open, could not send: ' + code);
                     }

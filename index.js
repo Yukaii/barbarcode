@@ -72,12 +72,23 @@ wss.on('connection', function connection(ws) {
   ws.on('error', console.error);
 
   ws.on('message', function message(data) {
-    const barcode = data.toString();
-    console.log('Received barcode:', barcode);
+    try {
+      const parsedData = JSON.parse(data);
+      const { code, format } = parsedData;
+      console.log('Received barcode:', code, 'Type:', format);
 
-    const keystrokePattern = sessionPattern.replace('{barcode}', barcode);
-    console.log(keystrokePattern, 'keystrokePattern');
-    executeKeystrokes(keystrokePattern);
+      const keystrokePattern = sessionPattern.replace('{barcode}', code);
+      console.log('Keystroke pattern:', keystrokePattern);
+
+      // You can use the format information if needed
+      // For example, you could log it or use it to determine how to process the barcode
+      console.log('Barcode format:', format);
+
+      executeKeystrokes(keystrokePattern);
+    } catch (error) {
+      console.error('Error processing message:', error);
+      console.log('Raw message data:', data.toString());
+    }
   });
 });
 function executeKeystrokes(pattern) {
