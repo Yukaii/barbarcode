@@ -9,11 +9,16 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@koush/wrtc": "^0.5.3",
     "@paulmillr/qr": "^0.2.0",
     "commander": "^12.1.0",
+    "data-compression": "^1.0.2",
     "express": "^4.19.2",
     "robotjs": "^0.6.0",
+    "simple-peer": "^9.11.1",
+    "socket.io": "^4.7.5",
     "toml": "^3.0.0",
+    "uuid": "^10.0.0",
     "ws": "^8.18.0"
   }
 }
