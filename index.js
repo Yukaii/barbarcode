@@ -1,126 +1,89 @@
-import { WebSocketServer } from 'ws';
 import express from 'express';
 import { createServer } from 'http';
-import { parse } from 'toml';
-import { readFileSync } from 'fs';
-import { program } from 'commander';
 import encodeQR from '@paulmillr/qr';
-import robotjs from 'robotjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { networkInterfaces } from 'os';
 
-const { keyTap, setKeyboardDelay, typeString } = robotjs
+import { loadConfig } from './config.js';
+import { initializeWebRTC } from './webrtc.js';
+import { executeKeystrokes } from './keystrokes.js';
+import { compressData, decompressData } from './compression.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Function to get local IP address
 function getLocalIpAddress() {
   const nets = networkInterfaces();
   for (const name of Object.keys(nets)) {
     for (const net of nets[name]) {
-      // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
       if (net.family === 'IPv4' && !net.internal) {
         return net.address;
       }
     }
   }
-  return 'localhost'; // Fallback to localhost if no suitable IP is found
+  return 'localhost';
 }
 
 const localIp = getLocalIpAddress();
-
-// Parse TOML configuration
-const config = parse(readFileSync('./config.toml', 'utf-8'));
-
-// CLI setup
-program
-  .version('1.0.0')
-  .option('-p, --port <number>', 'port to run the server on', 8080)
-  .option('-s, --session <string>', 'session identifier', "default")
-  .parse(process.argv);
-
-const options = program.opts();
-
-if (!options.session || !config.sessions[options.session]) {
-  console.error(`Error: Session "${options.session}" not found in config.`);
-  process.exit(1);
-}
-
+const { config, options } = loadConfig();
 const sessionPattern = config.sessions[options.session];
 
-// Express app setup
 const app = express();
 const server = createServer(app);
 
-// Serve static files (including index.html)
 app.use(express.static(path.join(__dirname, '.')));
 
-// WebSocket server setup
-const wss = new WebSocketServer({ server });
+let offer = null;
 
-// Generate QR code with connection info
-const webpageUrl = `http://${localIp}:${options.port}`;
-const qr = encodeQR(webpageUrl, 'ascii');
-console.log('Scan this QR code to open the web page:');
-console.log(qr);
+const peer = initializeWebRTC((data) => {
+  console.log('Received data from peer:', data.toString());
+  try {
+    const { code, format } = JSON.parse(data.toString());
+    console.log('Received barcode:', code, 'Type:', format);
 
-wss.on('connection', function connection(ws) {
-  console.log('Client connected');
+    const keystrokePattern = sessionPattern.replace('{barcode}', code);
+    console.log('Keystroke pattern:', keystrokePattern);
+    console.log('Barcode format:', format);
 
-  ws.on('error', console.error);
-
-  ws.on('message', function message(data) {
-    try {
-      const parsedData = JSON.parse(data);
-      const { code, format } = parsedData;
-      console.log('Received barcode:', code, 'Type:', format);
-
-      const keystrokePattern = sessionPattern.replace('{barcode}', code);
-      console.log('Keystroke pattern:', keystrokePattern);
-
-      // You can use the format information if needed
-      // For example, you could log it or use it to determine how to process the barcode
-      console.log('Barcode format:', format);
-
-      executeKeystrokes(keystrokePattern);
-    } catch (error) {
-      console.error('Error processing message:', error);
-      console.log('Raw message data:', data.toString());
-    }
-  });
-});
-function executeKeystrokes(pattern) {
-  const keystrokes = pattern.match(/(\{[^}]+\}|[^{]+)/g);
-
-  for (const keystroke of keystrokes) {
-    if (keystroke.startsWith('{') && keystroke.endsWith('}')) {
-      const command = keystroke.slice(1, -1);
-      if (command === 'enter') {
-        keyTap('enter');
-      } else if (command === 'tab') {
-        keyTap('tab');
-      } else if (command === 'esc') {
-        keyTap('escape');
-      } else if (command.startsWith('delay:')) {
-        const delay = parseInt(command.split(':')[1]);
-        setKeyboardDelay(delay);
-      } else if (['up', 'down', 'left', 'right'].includes(command)) {
-        keyTap(command);
-      } else if (command.startsWith('key:')) {
-        const key = command.split(':')[1];
-        keyTap(key);
-      }
-    } else {
-      typeString(keystroke);
-    }
+    executeKeystrokes(keystrokePattern);
+  } catch (error) {
+    console.error('Error processing received data:', error);
   }
-}
+});
 
-// Start the server
+peer.on('signal', (data) => {
+  offer = data;
+});
+
+app.get('/qr', (req, res) => {
+  console.log('QR code request received');
+  if (!offer) {
+    console.log('WebRTC offer not yet generated');
+    return res.status(503).send('WebRTC offer not yet generated. Please try again in a few seconds.');
+  }
+
+  const qrData = JSON.stringify(offer);
+  console.log('QR data (offer) length:', qrData.length);
+
+  const compressed = compressData(qrData)
+  const compressedString = compressed.toString('base64url');
+
+  console.log('Compressed string length:', compressedString.length);
+  console.log(`Compression rate: ${(compressedString.length / qrData.length * 100).toFixed(2)}%`);
+
+  const decompressed = decompressData(Buffer.from(compressedString, 'base64url'));
+  console.log('Decompressed data matches original:', decompressed === qrData);
+
+  const qrSvg = encodeQR(compressedString, 'svg');
+
+  console.log('QR code generated, sending response');
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.send(qrSvg);
+});
+
 server.listen(options.port, '0.0.0.0', () => {
   console.log(`Server running on http://${localIp}:${options.port}`);
-  console.log(`WebSocket server running on ws://${localIp}:${options.port}`);
+  console.log(`Access the QR code at http://${localIp}:${options.port}/qr`);
   console.log(`Active session: ${options.session}`);
 });
