@@ -1,0 +1,6 @@
+# Exclude everything by default
+*
+
+# But include dist/ and README.md
+!dist/
+!README.md
