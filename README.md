@@ -1,5 +1,7 @@
 # Barbarcode
 
+[![npm version](https://img.shields.io/npm/v/barbarcode.svg?style=flat-square)](https://www.npmjs.com/package/barbarcode)
+
 Barbarcode is a simple, open-source barcode scanning service with a server and a mobile client, both implemented in JavaScript.
 
 ## Demo
@@ -13,12 +15,32 @@ The server is a Node.js application that:
 - Uses a TOML-based configuration for keystroke mapping
 - Provides a CLI interface to start scanning sessions
 
+### Installation
+
+Install the server globally (or use npx):
+
+```sh
+npm install -g barbarcode
+# or, with npx (no install needed)
+npx barbarcode
+```
+
 ### Setup
 
-1. Navigate to the `server` directory
-2. Install dependencies: `npm install`
-3. Create a `config.toml` file for keystroke mapping (example below)
-4. Run the server: `node server.js -p 8080 -s mysession`
+1. Create a `config.toml` file for keystroke mapping (example below)
+2. Run the server using the CLI:
+
+```sh
+barbarcode -p 8080 -s mysession
+# or, with npx:
+npx barbarcode -p 8080 -s mysession
+```
+
+You can also specify a custom config file path with the `-c` or `--config` option:
+
+```sh
+barbarcode -c ./my-config.toml -s inventory_input
+```
 
 ### Session-based Keystroke Pattern Syntax
 
@@ -62,8 +84,10 @@ The client is a simple HTML file that:
 
 To start a specific session, use the `-s` or `--session` flag when starting the server:
 
-```
-node server.js -p 8080 -s inventory_input
+```sh
+barbarcode -p 8080 -s inventory_input
+# or, with npx:
+npx barbarcode -p 8080 -s inventory_input
 ```
 
 This will start the server using the keystroke pattern defined for the `inventory_input` session in the `config.toml` file.
@@ -74,8 +98,9 @@ This will start the server using the keystroke pattern defined for the `inventor
   - ws: WebSocket server
   - toml: TOML configuration parsing
   - commander: CLI interface
-  - paulmillr-qr: QR code generation
+  - qr: QR code generation
   - robotjs: Keystroke emulation
+  - ngrok: Public URL tunneling
 
 - Client:
   - html5-qrcode: QR code scanning
