@@ -1,6 +1,5 @@
 import { WebSocketServer } from 'ws';
 import express from 'express';
-import { createServer } from 'node:http';
 import { parse } from 'toml';
 import { readFileSync } from 'node:fs';
 import { program } from 'commander';
@@ -14,6 +13,7 @@ const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const html = readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
 
 function getLocalIpAddress(): string {
   const nets = networkInterfaces();
@@ -59,15 +59,21 @@ if (!session || !config.sessions[session]) {
 const sessionPattern = config.sessions[session];
 
 const app = express();
-const server = createServer(app);
-app.use(express.static(path.join(__dirname, '.')));
+app.get('/', (_req, res) => {
+  res.type('html').send(html);
+});
+
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log('Scan this QR code to open the web page:');
+  const webpageUrl = `http://${localIp}:${port}`;
+  const qr = encodeQR(webpageUrl, 'ascii');
+  console.log(qr);
+  console.log(`Server running on http://${localIp}:${port}`);
+  console.log(`WebSocket server running on ws://${localIp}:${port}`);
+  console.log(`Active session: ${session}`);
+});
 
 const wss = new WebSocketServer({ server });
-
-const webpageUrl = `http://${localIp}:${port}`;
-const qr = encodeQR(webpageUrl, 'ascii');
-console.log('Scan this QR code to open the web page:');
-console.log(qr);
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -120,9 +126,3 @@ function executeKeystrokes(pattern: string): void {
     }
   }
 }
-
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on http://${localIp}:${port}`);
-  console.log(`WebSocket server running on ws://${localIp}:${port}`);
-  console.log(`Active session: ${session}`);
-});
