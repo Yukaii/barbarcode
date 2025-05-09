@@ -8,89 +8,71 @@ Barbarcode is a simple, open-source barcode scanning service with a server and a
 
 https://github.com/user-attachments/assets/6905fc00-624b-4bd9-932c-54c056b6a9ef
 
-## Server
+## Usage
 
-The server is a Node.js application that:
-- Runs a WebSocket server to receive scanned barcodes from clients
-- Uses a TOML-based configuration for keystroke mapping
-- Provides a CLI interface to start scanning sessions
+Get started with Barbarcode in four simple steps:
 
-### Installation
-
-Install the server globally (or use npx):
-
+1. Install the server:
 ```sh
 npm install -g barbarcode
-# or, with npx (no install needed)
-npx barbarcode
+# or use npx without installing
 ```
 
-### Setup
-
-1. Create a `config.toml` file for keystroke mapping (example below)
-2. Run the server using the CLI:
-
-```sh
-barbarcode -p 8080 -s mysession
-# or, with npx:
-npx barbarcode -p 8080 -s mysession
-```
-
-You can also specify a custom config file path with the `-c` or `--config` option:
-
-```sh
-barbarcode -c ./my-config.toml -s inventory_input
-```
-
-### Session-based Keystroke Pattern Syntax
-
-The `config.toml` file uses the following structure:
-- The `[sessions]` section contains session names and their corresponding keystroke patterns
-- Use `{barcode}` in the pattern to represent the scanned barcode value
-
-Keystroke syntax:
-- `{barcode}`: Placeholder for the scanned barcode value
-- `{enter}`: Enter key
-- `{tab}`: Tab key
-- `{esc}`: Escape key
-- `{delay:ms}`: Delay in milliseconds
-- `{up}`, `{down}`, `{left}`, `{right}`: Arrow keys
-- `{key:X}`: Custom key (where X is the key to be pressed)
-- Any other text is typed as-is
-
-Example `config.toml`:
-
+2. Create a `config.toml` file with your keystroke mappings:
 ```toml
 [sessions]
 inventory_input = "{barcode}{enter}"
 price_check = "{key:F4}{barcode}{enter}"
-data_entry = "SKU:{barcode}{tab}Quantity:"
-complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
 ```
 
-## Client
-
-The client is a simple HTML file that:
-- Scans a QR code to connect to the server
-- Scans barcodes and sends them to the server
-
-### Usage
-
-1. Open the `client/index.html` file in a mobile browser
-2. Scan the QR code displayed by the server to connect
-3. Start scanning barcodes
-
-### Running a Session
-
-To start a specific session, use the `-s` or `--session` flag when starting the server:
-
+3. Start the server with your desired session:
 ```sh
 barbarcode -p 8080 -s inventory_input
-# or, with npx:
+# or with npx:
 npx barbarcode -p 8080 -s inventory_input
 ```
 
-This will start the server using the keystroke pattern defined for the `inventory_input` session in the `config.toml` file.
+4. Scan the QR code displayed by the server using your mobile device to start scanning barcodes!
+
+## Server
+
+The server component handles:
+- Running a WebSocket server for client connections
+- Converting scanned barcodes into keystrokes
+- Managing scanning sessions via CLI
+
+### Configuration
+
+The `config.toml` file defines how barcodes are processed using keystroke patterns:
+
+```toml
+[sessions]
+# Press Enter after the barcode
+inventory_input = "{barcode}{enter}"
+
+# Press F4, then type barcode, then Enter
+price_check = "{key:F4}{barcode}{enter}"
+
+# Type SKU:, the barcode, Tab, then Quantity:
+data_entry = "SKU:{barcode}{tab}Quantity:"
+
+# Wait 500ms, press F5, type barcode, Tab, 1, Enter
+complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
+```
+
+#### Keystroke Pattern Syntax
+- `{barcode}`: The scanned barcode value
+- `{enter}`, `{tab}`, `{esc}`: Special keys
+- `{delay:ms}`: Add delay in milliseconds
+- `{up}`, `{down}`, `{left}`, `{right}`: Arrow keys
+- `{key:X}`: Any other key (X)
+- Regular text: Typed as-is
+
+## Client
+
+A mobile-first web client that:
+- Automatically opens when scanning the server's QR code
+- Handles barcode scanning through your device's camera
 
 ## Libraries Used
 
