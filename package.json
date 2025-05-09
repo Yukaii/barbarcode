@@ -1,13 +1,14 @@
 {
   "name": "barbarcode",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "type": "module",
   "main": "dist/server.cjs",
   "bin": {
     "barbarcode": "./dist/server.cjs"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "LICENSE"
   ],
   "scripts": {
     "clean": "rm -rf dist",

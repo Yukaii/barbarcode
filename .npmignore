@@ -4,3 +4,4 @@
 # But include dist/ and README.md
 !dist/
 !README.md
+!LICENSE
