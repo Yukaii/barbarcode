@@ -2,9 +2,9 @@
   "name": "barbarcode",
   "version": "0.0.2",
   "type": "module",
-  "main": "dist/server.cjs",
+  "main": "dist/server.js",
   "bin": {
-    "barbarcode": "./dist/server.cjs"
+    "barbarcode": "./dist/server.js"
   },
   "files": [
     "dist/"
@@ -13,7 +13,7 @@
     "clean": "rm -rf dist",
     "build:server": "tsc -p tsconfig.app.json",
     "build": "vite build && pnpm run build:server",
-    "start": "node dist/server.cjs",
+    "start": "node dist/server.js",
     "dev": "vite",
     "lint": "biome lint .",
     "format": "biome format . --write",

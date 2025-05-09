@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /* eslint-disable */
 // @ts-nocheck
 const { WebSocketServer } = require('ws');
