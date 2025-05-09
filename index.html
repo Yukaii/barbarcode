@@ -4,75 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Barcode Scanner Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
     <style>
+        /* Custom base styles if needed, or Tailwind will handle most */
+        body {
+            font-family: sans-serif;
+        }
         #interactive.viewport {
             position: relative;
             width: 100%;
-            height: 300px;
+            height: auto; /* Adjusted for responsiveness */
+            min-height: 300px; /* Ensure a minimum height */
         }
         #interactive.viewport > canvas, #interactive.viewport > video {
             max-width: 100%;
             width: 100%;
+            height: auto; /* Ensure video/canvas scales correctly */
         }
         canvas.drawing, canvas.drawingBuffer {
             position: absolute;
             left: 0;
             top: 0;
         }
-        #debug-log-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-        #debug-log {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            max-width: 600px;
-            height: 80%;
-            max-height: 400px;
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #debug-log h3 {
-            margin-top: 0;
-        }
-        #log-content {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        #toggle-debug-log {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1001;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        /* Tailwind will handle debug log overlay styling */
     </style>
 </head>
-<body>
-    <div id="interactive" class="viewport"></div>
-    <button id="toggle-debug-log">Toggle Debug Log</button>
-    <div id="debug-log-overlay">
-        <div id="debug-log">
-            <h3>Debug Log:</h3>
-            <pre id="log-content"></pre>
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 max-w-3xl">
+        <h1 class="text-2xl font-bold text-center mb-4">Barcode Scanner</h1>
+        <div id="interactive" class="viewport rounded-lg shadow-lg overflow-hidden bg-black"></div>
+        <div class="mt-6 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <button id="switch-camera" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+                Switch Camera
+            </button>
+            <button id="toggle-debug-log" class="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">Toggle Debug Log</button>
+        </div>
+    </div>
+
+    <div id="debug-log-overlay" class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden items-center justify-center p-4">
+        <div id="debug-log" class="bg-white rounded-lg p-6 shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+            <h3 class="text-xl font-semibold mb-3">Debug Log:</h3>
+            <pre id="log-content" class="text-sm bg-gray-50 p-3 rounded"></pre>
         </div>
     </div>
     <script>
@@ -108,19 +82,39 @@
                         Quagga.start();
                     });
                 },
+                restart: function() {
+                    debugLog('Restarting Quagga with new settings...');
+                    Quagga.stop();
+                    // A short delay might be needed for Quagga to fully stop before re-init
+                    setTimeout(() => {
+                        Quagga.init(this.state, function(err) {
+                            if (err) {
+                                debugLog('Quagga re-initialization error: ' + err);
+                                return;
+                            }
+                            debugLog('Quagga re-initialized successfully');
+                            Quagga.start();
+                        });
+                    }, 100); // 100ms delay
+                },
                 attachListeners: function() {
                     var self = this;
 
-                    $(".controls").on("click", "button.stop", function(e) {
-                        e.preventDefault();
-                        Quagga.stop();
-                        debugLog('Quagga stopped');
-                    });
+                    // Existing listeners (if any, like .controls)
+                    // $(".controls").on("click", "button.stop", ...);
+                    // $(".controls").on("click", "button.start", ...);
 
-                    $(".controls").on("click", "button.start", function(e) {
-                        e.preventDefault();
-                        Quagga.start();
-                        debugLog('Quagga started');
+                    $('#switch-camera').on('click', function() {
+                        debugLog('Switch camera button clicked');
+                        var currentFacingMode = self.state.inputStream.constraints.facingMode;
+                        if (currentFacingMode === "environment") {
+                            self.state.inputStream.constraints.facingMode = "user";
+                            debugLog('Switching to user (front) camera');
+                        } else {
+                            self.state.inputStream.constraints.facingMode = "environment";
+                            debugLog('Switching to environment (rear) camera');
+                        }
+                        self.restart();
                     });
                 },
                 state: {
