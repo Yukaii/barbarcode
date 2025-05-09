@@ -3,18 +3,18 @@ import express from 'express';
 import { parse } from 'toml';
 import { readFileSync } from 'node:fs';
 import { program } from 'commander';
-import encodeQR from 'qr';
-import robotjs from 'robotjs';
-import path from 'node:path';
+import { encodeQR } from 'qr';
+import * as robotjs from 'robotjs';
+import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
-import ngrok from 'ngrok';
+import * as ngrok from 'ngrok';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const html = readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
+// const html = readFileSync(path.join(__dirname, 'index.html'), 'utf-8'); // Removed
 
 function getLocalIpAddress(): string {
   const nets = networkInterfaces();
@@ -35,7 +35,9 @@ type Config = {
   sessions: Record<string, string>;
 };
 
-const config: Config = parse(readFileSync('./config.toml', 'utf-8'));
+// When running from dist/server.js, __dirname will be the dist folder.
+const configPath = path.join(__dirname, 'config.toml');
+const config: Config = parse(readFileSync(configPath, 'utf-8'));
 
 program
   .version('1.0.0')
@@ -60,8 +62,13 @@ if (!session || !config.sessions[session]) {
 const sessionPattern = config.sessions[session];
 
 const app = express();
+
+// Serve static files from the 'public' directory inside 'dist'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html from 'dist'
 app.get('/', (_req, res) => {
-  res.type('html').send(html);
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const server = app.listen(port, '0.0.0.0', async () => {

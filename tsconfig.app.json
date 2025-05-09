@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "./tsconfig.json"
+  ],
+  "files": [
+    "server.mts"
+  ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": false
+  }
+}
