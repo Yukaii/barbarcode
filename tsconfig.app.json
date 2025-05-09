@@ -3,7 +3,7 @@
     "./tsconfig.json"
   ],
   "files": [
-    "server.mts"
+    "server.ts"
   ],
   "compilerOptions": {
     "outDir": "dist",

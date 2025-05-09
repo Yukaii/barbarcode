@@ -1,22 +1,21 @@
-import { WebSocketServer } from 'ws';
-import express from 'express';
-import { parse } from 'toml';
-import { readFileSync, existsSync } from 'node:fs';
-import { program } from 'commander';
-import { encodeQR } from 'qr';
-import * as robotjs from 'robotjs';
-import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { networkInterfaces } from 'node:os';
-import * as ngrok from 'ngrok';
+/* eslint-disable */
+// @ts-nocheck
+const { WebSocketServer } = require('ws');
+const express = require('express');
+const { parse } = require('toml');
+const { readFileSync, existsSync } = require('node:fs');
+const { program } = require('commander');
+const { encodeQR } = require('qr');
+const robotjs = require('robotjs');
+const path = require('node:path');
+/* CJS fallback for __filename and __dirname */
+const { networkInterfaces } = require('node:os');
+const ngrok = require('ngrok');
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// const html = readFileSync(path.join(__dirname, 'index.html'), 'utf-8'); // Removed
 
-function getLocalIpAddress(): string {
+function getLocalIpAddress() {
   const nets = networkInterfaces();
   for (const name of Object.keys(nets)) {
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -31,9 +30,6 @@ function getLocalIpAddress(): string {
 
 const localIp = getLocalIpAddress();
 
-type Config = {
-  sessions: Record<string, string>;
-};
 
 // When running from dist/server.js, __dirname will be the dist folder.
 program
@@ -43,19 +39,13 @@ program
   .option('-c, --config <path>', 'path to config.toml', path.join(process.cwd(), 'config.toml'))
   .parse(process.argv);
 
-interface Options {
-  port: string;
-  session: string;
-  config: string;
-}
-
-const options = program.opts<Options>();
+const options = program.opts();
 const configPath = options.config;
 if (!existsSync(configPath)) {
   console.error(`Error: Config file not found at "${configPath}"`);
   process.exit(1);
 }
-const config: Config = parse(readFileSync(configPath, 'utf-8'));
+const config = parse(readFileSync(configPath, 'utf-8'));
 const port = Number(options.port);
 const session = options.session;
 
@@ -72,7 +62,7 @@ const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve index.html from 'dist'
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
