@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 
 /* eslint-disable */
-// @ts-nocheck
-const { WebSocketServer } = require('ws');
-const express = require('express');
-const { parse } = require('toml');
-const { readFileSync, existsSync } = require('node:fs');
-const { program } = require('commander');
-const { encodeQR } = require('qr');
-const robotjs = require('robotjs');
-const path = require('node:path');
+import { WebSocketServer } from 'ws';
+import express from 'express';
+import { parse } from 'toml';
+import { readFileSync, existsSync } from 'node:fs';
+import { program } from 'commander';
+import { encodeQR } from 'qr';
+import robotjs from 'robotjs';
+import path from 'node:path';
 /* CJS fallback for __filename and __dirname */
-const { networkInterfaces } = require('node:os');
-const ngrok = require('ngrok');
+import { networkInterfaces } from 'node:os';
+import ngrok from 'ngrok';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
