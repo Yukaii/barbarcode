@@ -1,6 +1,7 @@
 import $ from 'jquery';
 // @ts-ignore
 import Quagga from 'quagga';
+import "./styles.css";
 
 declare global {
     interface Window {
