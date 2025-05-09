@@ -1,0 +1,18 @@
+{
+  "files": {
+    "include": ["**/*.{ts,tsx,js,jsx,json,md}"],
+    "exclude": ["node_modules", "dist"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentSize": 2,
+    "semicolons": "always",
+    "lineWidth": 80,
+    "quoteStyle": "single"
+  },
+  "linter": {
+    "rules": {
+      "recommended": true
+    }
+  }
+}
