@@ -7,8 +7,7 @@
     "barbarcode": "./dist/server.mjs"
   },
   "files": [
-    "dist/",
-    "config.toml"
+    "dist/"
   ],
   "scripts": {
     "clean": "rm -rf dist",

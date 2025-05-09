@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 import express from 'express';
 import { parse } from 'toml';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { program } from 'commander';
 import { encodeQR } from 'qr';
 import * as robotjs from 'robotjs';
@@ -36,21 +36,26 @@ type Config = {
 };
 
 // When running from dist/server.js, __dirname will be the dist folder.
-const configPath = path.join(__dirname, 'config.toml');
-const config: Config = parse(readFileSync(configPath, 'utf-8'));
-
 program
   .version('1.0.0')
   .option('-p, --port <number>', 'port to run the server on', '8080')
   .option('-s, --session <string>', 'session identifier', 'default')
+  .option('-c, --config <path>', 'path to config.toml', path.join(process.cwd(), 'config.toml'))
   .parse(process.argv);
 
 interface Options {
   port: string;
   session: string;
+  config: string;
 }
 
 const options = program.opts<Options>();
+const configPath = options.config;
+if (!existsSync(configPath)) {
+  console.error(`Error: Config file not found at "${configPath}"`);
+  process.exit(1);
+}
+const config: Config = parse(readFileSync(configPath, 'utf-8'));
 const port = Number(options.port);
 const session = options.session;
 
