@@ -3,7 +3,7 @@ import express from 'express';
 import { parse } from 'toml';
 import { readFileSync } from 'node:fs';
 import { program } from 'commander';
-import encodeQR from '@paulmillr/qr';
+import encodeQR from 'qr';
 import robotjs from 'robotjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

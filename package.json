@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "bun index.ts",
+    "start": "tsx index.ts",
     "lint": "biome lint",
     "format": "biome format"
   },
@@ -11,10 +11,10 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@paulmillr/qr": "^0.2.0",
     "commander": "^12.1.0",
     "express": "^4.19.2",
-    "ngrok": "^5.0.0-beta.2",
+    "ngrok": "5.0.0-beta.2",
+    "qr": "^0.4.2",
     "robotjs": "^0.6.0",
     "toml": "^3.0.0",
     "ws": "^8.18.0"
@@ -23,6 +23,7 @@
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.17",
     "@types/ws": "^8.18.1",
-    "biome": "^0.3.3"
+    "biome": "^0.3.3",
+    "tsx": "^4.19.4"
   }
 }
