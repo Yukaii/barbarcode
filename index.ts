@@ -8,6 +8,7 @@ import robotjs from 'robotjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { networkInterfaces } from 'node:os';
+import ngrok from 'ngrok';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
@@ -63,13 +64,14 @@ app.get('/', (_req, res) => {
   res.type('html').send(html);
 });
 
-const server = app.listen(port, '0.0.0.0', () => {
+const server = app.listen(port, '0.0.0.0', async () => {
   console.log('Scan this QR code to open the web page:');
-  const webpageUrl = `http://${localIp}:${port}`;
-  const qr = encodeQR(webpageUrl, 'ascii');
+  const publicUrl = await ngrok.connect({ proto: 'http', addr: port });
+  const websocketUrl = publicUrl.replace(/^https?:/, 'ws:');
+  const qr = encodeQR(publicUrl, 'ascii');
   console.log(qr);
-  console.log(`Server running on http://${localIp}:${port}`);
-  console.log(`WebSocket server running on ws://${localIp}:${port}`);
+  console.log(`Server running on ${publicUrl}`);
+  console.log(`WebSocket server running on ${websocketUrl}`);
   console.log(`Active session: ${session}`);
 });
 
