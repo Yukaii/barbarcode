@@ -15,12 +15,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const lines = [
-        { text: '> barbarcode -p 8080 -s inventory_input', speed: 50 },
-        { text: 'Server starting on port 8080...', speed: 30 },
-        { text: 'Session type: inventory_input', speed: 30 },
-        { text: 'Generating QR code for client connection...', speed: 30 },
-        { text: `Ngrok tunnel established at: ${demoPublicUrl}`, speed: 40, isNgrokUrl: true },
-        { text: 'Scan the QR code below with your mobile device:', speed: 30, isQRCodePrompt: true }
+        { text: '> barbarcode -p 8080 -s inventory_input', speed: 25 }, // Reduced from 50
+        { text: 'Server starting on port 8080...', speed: 15 },        // Reduced from 30
+        { text: 'Session type: inventory_input', speed: 15 },        // Reduced from 30
+        { text: 'Generating QR code for client connection...', speed: 15 }, // Reduced from 30
+        { text: `Ngrok tunnel established at: ${demoPublicUrl}`, speed: 20, isNgrokUrl: true }, // Reduced from 40
+        { text: 'Scan the QR code below with your mobile device:', speed: 15, isQRCodePrompt: true } // Reduced from 30
     ];
 
     let lineIndex = 0;
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerElement.innerHTML = headerText.substring(0, charIndex + 1) + '<span class="cursor"></span>';
             }
             charIndex++;
-            setTimeout(typeHeaderText, 100);
+            setTimeout(typeHeaderText, 50); // Reduced from 100
         } else {
             charIndex = 0; // Reset for terminal animation
             typeTerminalLine(); // Start terminal animation after header
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayQRCode();
             }
             lineIndex++;
-            setTimeout(typeTerminalLine, 500); // Delay before typing next line
+            setTimeout(typeTerminalLine, 250); // Reduced from 500
         }
     }
 

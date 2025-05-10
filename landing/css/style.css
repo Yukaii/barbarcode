@@ -74,6 +74,17 @@ section h2 {
     border-radius: 4px;
 }
 
+#qr-code-container svg {
+    max-width: 300px;
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* To allow margin auto to work for centering if needed */
+    margin: 0 auto; /* Center the SVG if its container is wider */
+}
+
+#qr-code-container svg path {
+    fill: #FFFFFF; /* Change QR code paths to white */
+}
+
 .config-intro p, .mobile-demo p {
     margin-bottom: 15px;
 }
