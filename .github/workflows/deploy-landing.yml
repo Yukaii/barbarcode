@@ -29,13 +29,13 @@ jobs:
         run: pnpm run build:landing
 
       - name: Add CNAME for custom domain
-        run: echo "barbarcode.yukai.dev" > landing/dist/CNAME
+        run: echo "barbarcode.yukai.dev" > dist/landing/CNAME
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./landing/dist # The directory to publish
+          publish_dir: ./dist/landing # The directory to publish
           # publish_branch: gh-pages # The branch to deploy to (default is gh-pages)
           # user_name: 'github-actions[bot]' # Optional: Custom committer name
           # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: Custom committer email
