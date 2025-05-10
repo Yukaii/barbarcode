@@ -7,43 +7,46 @@
     <style>
         /* Custom base styles if needed, or Tailwind will handle most */
         body {
-            font-family: sans-serif;
+            font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
         }
         #interactive.viewport {
             position: relative;
             width: 100%;
-            height: auto; /* Adjusted for responsiveness */
-            min-height: 300px; /* Ensure a minimum height */
+            height: auto;
+            min-height: 300px;
+            background: #18181b;
+            border: 2px solid #333;
         }
         #interactive.viewport > canvas, #interactive.viewport > video {
             max-width: 100%;
             width: 100%;
-            height: auto; /* Ensure video/canvas scales correctly */
+            height: auto;
         }
         canvas.drawing, canvas.drawingBuffer {
             position: absolute;
             left: 0;
             top: 0;
         }
-        /* Tailwind will handle debug log overlay styling */
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-[#1e1e1e] text-[#d4d4d4] font-mono">
     <div class="container mx-auto p-4 max-w-3xl">
-        <h1 class="text-2xl font-bold text-center mb-4">Barcode Scanner</h1>
-        <div id="interactive" class="viewport rounded-lg shadow-lg overflow-hidden bg-black"></div>
+        <h1 class="text-2xl font-bold text-center mb-4 text-[#4ec9b0] tracking-tight">barbarcode — Mobile Scanner</h1>
+        <div id="interactive" class="viewport rounded-lg shadow-lg overflow-hidden bg-[#18181b] border border-[#333]"></div>
         <div class="mt-6 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <button id="switch-camera" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+            <button id="switch-camera" class="w-full sm:w-auto bg-[#27c93f] hover:bg-[#13a10e] text-[#1e1e1e] font-semibold py-3 px-6 rounded border border-[#13a10e] shadow transition duration-150 ease-in-out">
                 Switch Camera
             </button>
-            <button id="toggle-debug-log" class="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">Toggle Debug Log</button>
+            <button id="toggle-debug-log" class="w-full sm:w-auto bg-[#23272e] hover:bg-[#333] text-[#d4d4d4] font-semibold py-3 px-6 rounded border border-[#444] shadow transition duration-150 ease-in-out">
+                Toggle Debug Log
+            </button>
         </div>
     </div>
 
-    <div id="debug-log-overlay" class="fixed inset-0 bg-black bg-opacity-75 z-40 hidden items-center justify-center p-4">
-        <div id="debug-log" class="bg-white rounded-lg p-6 shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
-            <h3 class="text-xl font-semibold mb-3">Debug Log:</h3>
-            <pre id="log-content" class="text-sm bg-gray-50 p-3 rounded"></pre>
+    <div id="debug-log-overlay" class="fixed inset-0 bg-[#18181b] bg-opacity-95 z-40 hidden items-center justify-center p-4">
+        <div id="debug-log" class="bg-[#23272e] rounded-lg p-6 shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto border border-[#444]">
+            <h3 class="text-xl font-semibold mb-3 text-[#4ec9b0]">Debug Log:</h3>
+            <pre id="log-content" class="text-sm bg-[#1e1e1e] text-[#d4d4d4] p-3 rounded font-mono"></pre>
         </div>
     </div>
     <script type="module" src="/client.ts"></script>
