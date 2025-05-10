@@ -1,4 +1,6 @@
 import { encodeQR } from 'qr';
+import '../css/style.css';
+import '../css/tailwind.css';
 
 document.addEventListener('DOMContentLoaded', () => {
     const terminalOutput = document.getElementById('terminal-output');

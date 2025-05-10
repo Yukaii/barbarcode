@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  /* Terminal Color Palette */
+  --color-terminal-bg: #1e1e1e;
+  --color-terminal-text: #d4d4d4;
+  --color-terminal-section: #252526;
+  --color-terminal-border: #333;
+  --color-terminal-prompt: #4ec9b0;
+  --color-terminal-heading: #569cd6;
+  --color-terminal-cursor-bg: #d4d4d4; /* Added for cursor */
+
+  /* Font Families */
+  --font-mono: 'Consolas', 'Monaco', 'Menlo', monospace;
+
+  /* Animations & Keyframes */
+  --animate-blink: blink 1s step-end infinite;
+
+  @keyframes blink {
+    from, to { background-color: transparent; }
+    50% { background-color: var(--color-terminal-cursor-bg); }
+  }
+}
+
+body {
+  background-color: var(--color-terminal-bg);
+  color: var(--color-terminal-text);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  overflow: hidden;
+}
+
+header h1 {
+  color: var(--color-terminal-prompt);
+  font-size: 2em;
+  margin-bottom: 0.5em;
+  white-space: nowrap;
+}
+
+.cursor {
+  display: inline-block;
+  /* background-color will be handled by animation */
+  width: 10px;
+  height: 1.5em;
+  animation: var(--animate-blink);
+  vertical-align: bottom;
+}
+
+section {
+  background-color: var(--color-terminal-section);
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--color-terminal-border);
+}
+
+section h2 {
+  color: var(--color-terminal-heading);
+  border-bottom: 1px solid var(--color-terminal-border);
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.terminal {
+  background-color: var(--color-terminal-bg); /* Or a slightly different shade if preferred */
+  padding: 15px;
+  border-radius: 4px;
+  min-height: 150px;
+  font-size: 0.9em;
+  overflow-y: auto;
+}
+
+.terminal p {
+  margin: 0 0 5px 0;
+  white-space: pre-wrap;
+}
+
+#qr-code-container {
+  text-align: center;
+  margin-top: 15px;
+}
+
+#qr-code-container img {
+  max-width: 200px;
+  border: 5px solid #fff; /* Assuming white border for QR is still desired */
+  border-radius: 4px;
+}
+
+#qr-code-container svg {
+  max-width: 300px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+#qr-code-container svg path {
+  fill: #FFFFFF; /* Assuming white fill for QR is still desired */
+}
+
+.config-intro p, .mobile-demo p {
+  margin-bottom: 15px;
+}
+
+pre {
+  background-color: var(--color-terminal-bg); /* Or a slightly different shade */
+  color: var(--color-terminal-text);
+  padding: 15px;
+  border-radius: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--color-terminal-border);
+}
