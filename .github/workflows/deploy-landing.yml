@@ -1,0 +1,49 @@
+# GitHub Workflow for building and deploying landing page to gh-pages
+
+name: Deploy Landing Page to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+    paths:
+      - 'landing/**' # Only run if files in landing/ folder change
+      - '.github/workflows/deploy-landing.yml' # Or if the workflow file itself changes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Allow write access to repository for gh-pages branch
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Specify your Node.js version if needed for build tools
+
+      # Add any build steps for your landing page if necessary
+      # For a static HTML/CSS/JS page, this might not be needed
+      # Example: If you were using a static site generator or a build tool like Vite for the landing page
+      # - name: Install dependencies (if any)
+      #   run: | # (Example, adapt if you have a package.json in landing/)
+      #     cd landing
+      #     npm install
+      # - name: Build landing page (if any)
+      #   run: |
+      #     cd landing
+      #     npm run build # Assuming you have a build script
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./landing/dist # The directory to publish
+          # publish_branch: gh-pages # The branch to deploy to (default is gh-pages)
+          # user_name: 'github-actions[bot]' # Optional: Custom committer name
+          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: Custom committer email
+          # commit_message: 'Deploy landing page to gh-pages' # Optional: Custom commit message
+          # force_orphan: true # Optional: Create a new orphan branch for gh-pages

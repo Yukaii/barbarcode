@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbarcode - Scan with Ease</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>barbarcode&gt; <span class="cursor"></span></h1>
+        </header>
+
+        <section id="server-startup">
+            <h2>Server Startup</h2>
+            <div class="terminal" id="terminal-output">
+                <p>&gt; barbarcode -p 8080 -s inventory_input</p>
+                <!-- Animation will add more lines here -->
+            </div>
+            <div id="qr-code-container">
+                <!-- QR code will be displayed here -->
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>Flexible Configuration</h2>
+            <div class="config-intro">
+                <p>Easily define keystroke mappings in a simple <code>config.toml</code> file. Tailor Barbarcode to your exact workflow.</p>
+                <pre><code class="language-toml">
+[sessions]
+# Press Enter after the barcode
+inventory_input = "{barcode}{enter}"
+
+# Press F4, then type barcode, then Enter
+price_check = "{key:F4}{barcode}{enter}"
+
+# Type SKU:, the barcode, Tab, then Quantity:
+data_entry = "SKU:{barcode}{tab}Quantity:"
+
+# Wait 500ms, press F5, type barcode, Tab, 1, Enter
+complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
+                </code></pre>
+                <p>Supports special keys, delays, and custom text for ultimate control.</p>
+            </div>
+        </section>
+
+        <section id="mobile-scan">
+            <h2>Scan with Your Mobile</h2>
+            <div class="mobile-demo">
+                <p>Scan the QR code displayed by the server with your mobile device. No app installation needed!</p>
+                <img src="images/mobile-scan-placeholder.png" alt="Mobile scanning QR code" id="mobile-scan-img">
+                <p>Your phone becomes a powerful barcode scanner, seamlessly sending data to your computer.</p>
+            </div>
+        </section>
+
+        <footer>
+            <p>Barbarcode is open-source. Check it out on <a href="https://github.com/your-repo/barbarcode" target="_blank">GitHub</a>.</p>
+        </footer>
+    </div>
+    <script type="module" src="js/main.mjs"></script>
+</body>
+</html>

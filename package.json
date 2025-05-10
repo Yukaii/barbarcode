@@ -13,9 +13,11 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build:server": "tsc -p tsconfig.app.json",
+    "build:landing": "vite build landing --outDir dist --emptyOutDir",
     "build": "vite build && pnpm run build:server",
     "start": "node dist/server.cjs",
     "dev": "vite",
+    "dev:landing": "vite landing",
     "lint": "biome lint .",
     "format": "biome format . --write",
     "prepublishOnly": "pnpm run build"
