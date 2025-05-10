@@ -8,6 +8,9 @@ jobs:
   lint-build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Setup Node, pnpm, and system dependencies
         uses: ./.github/actions/setup
         with:

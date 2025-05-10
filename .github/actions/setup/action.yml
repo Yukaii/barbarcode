@@ -3,9 +3,6 @@ description: Composite action to set up Node.js, pnpm, and required system libra
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
