@@ -20,22 +20,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node, pnpm, and system dependencies
+        uses: ./.github/actions/setup
         with:
-          node-version: '20' # Specify your Node.js version if needed for build tools
+          node-version: '22'
 
-      # Add any build steps for your landing page if necessary
-      # For a static HTML/CSS/JS page, this might not be needed
-      # Example: If you were using a static site generator or a build tool like Vite for the landing page
-      # - name: Install dependencies (if any)
-      #   run: | # (Example, adapt if you have a package.json in landing/)
-      #     cd landing
-      #     npm install
-      # - name: Build landing page (if any)
-      #   run: |
-      #     cd landing
-      #     npm run build # Assuming you have a build script
+      - name: Build landing page
+        run: pnpm run build:landing
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
