@@ -1,0 +1,23 @@
+name: Lint and Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node, pnpm, and system dependencies
+        uses: ./.github/actions/setup
+        with:
+          node-version: '22'
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build
+        run: pnpm run build

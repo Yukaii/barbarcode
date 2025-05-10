@@ -1,0 +1,31 @@
+name: Setup Node, pnpm, and system dependencies
+description: Composite action to set up Node.js, pnpm, and required system libraries
+runs:
+  using: "composite"
+  steps:
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        registry-url: 'https://registry.npmjs.org/'
+        cache: 'pnpm'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev libxtst-dev libpng++-dev make g++ gcc
+      shell: bash
+
+    - name: Install dependencies
+      run: pnpm install
+      shell: bash
+
+inputs:
+  node-version:
+    description: Node.js version to use
+    required: true
