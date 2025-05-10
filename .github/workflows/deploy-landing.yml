@@ -28,6 +28,9 @@ jobs:
       - name: Build landing page
         run: pnpm run build:landing
 
+      - name: Add CNAME for custom domain
+        run: echo "barbarcode.yukai.dev" > landing/dist/CNAME
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
