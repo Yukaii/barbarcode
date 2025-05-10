@@ -16,7 +16,10 @@ runs:
         cache: 'pnpm'
 
     - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y libx11-dev libxtst-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev libxtst-dev libpng++-dev python2 make g++ gcc
+        sudo ln -sf /usr/bin/python2 /usr/bin/python || true
       shell: bash
 
     - name: Install dependencies
