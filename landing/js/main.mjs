@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function typeHeaderText() {
         if (charIndex < headerText.length) {
             if (headerElement) {
-                headerElement.innerHTML = headerText.substring(0, charIndex + 1) + '<span class="cursor"></span>';
+                headerElement.innerHTML = `${headerText.substring(0, charIndex + 1)}<span class="cursor"></span>`;
             }
             charIndex++;
             setTimeout(typeHeaderText, 50); // Reduced from 100
@@ -41,52 +41,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let terminalText = '';
+
     function typeTerminalLine() {
         if (lineIndex < lines.length) {
             const currentLine = lines[lineIndex];
-            const p = lineIndex === 0 && terminalOutput.querySelector('p') ? terminalOutput.querySelector('p') : document.createElement('p');
-            if (lineIndex > 0 || !terminalOutput.querySelector('p')) {
-                terminalOutput.appendChild(p);
-            }
-            
-            typeChar(p, currentLine, 0);
+            typeChar(currentLine, 0);
         } else {
             // All lines typed
             if (cursor) cursor.style.display = 'none'; // Hide cursor after animation
         }
     }
 
-    function typeChar(element, lineConfig, charIdx) {
+    function typeChar(lineConfig, charIdx) {
         if (charIdx < lineConfig.text.length) {
-            element.textContent = lineConfig.text.substring(0, charIdx + 1);
-            setTimeout(() => typeChar(element, lineConfig, charIdx + 1), lineConfig.speed);
+            terminalOutput.textContent = `${terminalText}${lineConfig.text.substring(0, charIdx + 1)}`;
+            setTimeout(() => typeChar(lineConfig, charIdx + 1), lineConfig.speed);
         } else {
             // Line finished typing
+            terminalText += `${lineConfig.text}\n`;
+            terminalOutput.textContent = terminalText;
             if (lineConfig.isNgrokUrl) {
                 // Potentially make this a clickable link
             }
             if (lineConfig.isQRCodePrompt) {
                 displayQRCode();
+            } else {
+                lineIndex++;
+                setTimeout(typeTerminalLine, 250); // Reduced from 500
             }
-            lineIndex++;
-            setTimeout(typeTerminalLine, 250); // Reduced from 500
         }
     }
 
     function displayQRCode() {
         try {
-            // Generate SVG string for the QR code
+            // Generate ASCII string for the QR code
             // encodeQR(text, type, errorCorrectLevel, margin)
-            // Type 'svg' for SVG output. 'M' is a common error correction level.
-            const svgString = encodeQR(demoPublicUrl, 'svg', 'M');
-            
-            qrCodeContainer.innerHTML = ''; // Clear previous content (e.g., placeholder img)
-            qrCodeContainer.innerHTML = svgString; // Insert SVG string
-
-            // The CSS will style the SVG element
+            // Type 'ascii' for ASCII output. 'M' is a common error correction level.
+            const asciiString = encodeQR(demoPublicUrl, 'ascii', 'M');
+            terminalText += `${asciiString}\n`;
+            terminalOutput.textContent = terminalText;
+            lineIndex++;
+            setTimeout(typeTerminalLine, 250);
         } catch (error) {
             console.error("Error generating QR code:", error);
-            qrCodeContainer.innerHTML = '<p style="color: red;">Error generating QR code.</p>';
+            terminalText += '[Error generating QR code]\n';
+            terminalOutput.textContent = terminalText;
+            lineIndex++;
+            setTimeout(typeTerminalLine, 250);
         }
     }
 

@@ -11,16 +11,20 @@
             <h1 class="text-[#4ec9b0] text-2xl mb-2 whitespace-nowrap">barbarcode> <span class="cursor"></span></h1>
         </header>
 
-        <section id="server-startup" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
-            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mt-0">Server Startup</h2>
-            <div class="bg-[#1e1e1e] p-4 rounded min-h-[150px] text-sm overflow-y-auto" id="terminal-output">
-                <p class="m-0 mb-1 whitespace-pre-wrap">> barbarcode -p 8080 -s inventory_input</p>
-                <!-- Animation will add more lines here -->
-            </div>
-            <div id="qr-code-container" class="text-center mt-4">
-                <!-- QR code will be displayed here -->
-            </div>
-        </section>
+<section id="server-startup" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
+    <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mt-0">Server Startup</h2>
+    <div class="terminal-window max-w-[650px] mx-auto my-6 rounded-lg shadow-lg border border-[#222] bg-[#1e1e1e]">
+        <div class="terminal-chrome flex items-center px-4 py-2 rounded-t-lg bg-[#23272e] border-b border-[#222]">
+            <span class="w-3 h-3 rounded-full bg-[#ff5f56] mr-2 border border-[#e0443e]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#ffbd2e] mr-2 border border-[#dea123]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#13a10e]"></span>
+            <span class="ml-4 text-xs text-[#888] select-none">barbarcode — bash</span>
+        </div>
+        <div class="terminal-body p-4 min-h-[150px] text-sm overflow-y-auto font-mono">
+            <pre id="terminal-output" class="whitespace-pre-wrap m-0"></pre>
+        </div>
+    </div>
+</section>
 
         <section id="installation" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
             <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mt-0">Installation</h2>
