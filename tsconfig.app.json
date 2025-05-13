@@ -1,12 +1,11 @@
 {
-  "extends": [
-    "./tsconfig.json"
-  ],
-  "files": [
-    "server.cts"
-  ],
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "noEmit": false
-  }
+    "noEmit": false,
+    "allowImportingTsExtensions": false
+  },
+  "include": [
+    "server.cts"
+  ]
 }
