@@ -75,7 +75,7 @@ export default function App() {
           (decodedText) => {
             debugLog(`Camera QR scan: ${decodedText}`);
             handleQrCode(decodedText);
-            stopCameraScan();
+            // Camera will be stopped after all chunks are received
           },
           (errorMessage) => {
             // Suppress "NotFoundException" (no QR detected in frame)
@@ -155,23 +155,35 @@ export default function App() {
       const updated = { ...prev, [chunk.part]: base64ToUtf8(chunk.data) };
       const receivedChunks = Object.keys(updated).length;
       debugLog(`Collected ${receivedChunks}/${chunk.length} QR chunks.`);
-      if (receivedChunks === chunk.length) {
-        debugLog("All QR chunks received, assembling offer...");
-        let offerJson = "";
-        for (let i = 1; i <= chunk.length; i++) {
-          if (!updated[i]) {
-            debugLog(`Missing chunk ${i}, aborting.`);
-            resetWebRTCState();
-            return prev;
-          }
-          offerJson += updated[i];
-        }
-        setOfferJson(offerJson);
-        processOffer(offerJson);
-      }
       return updated;
     });
   }
+
+  // Effect: when all QR chunks are collected, stop camera and process offer
+  useEffect(() => {
+    if (
+      totalChunks > 0 &&
+      Object.keys(qrChunks).length === totalChunks &&
+      !signalingOfferProcessed
+    ) {
+      debugLog("All QR chunks received, assembling offer...");
+      (async () => {
+        await stopCameraScan();
+        let offerJson = "";
+        for (let i = 1; i <= totalChunks; i++) {
+          if (!qrChunks[i]) {
+            debugLog(`Missing chunk ${i}, aborting.`);
+            resetWebRTCState();
+            return;
+          }
+          offerJson += qrChunks[i];
+        }
+        setOfferJson(offerJson);
+        processOffer(offerJson);
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrChunks, totalChunks]);
 
   async function processOffer(offerJson: string) {
     setSignalingOfferProcessed(true);
