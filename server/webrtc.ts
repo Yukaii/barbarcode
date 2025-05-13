@@ -361,6 +361,20 @@ export async function startWebRTCServer({
         /^c=IN IP4 0\.0\.0\.0/m,
         `c=IN IP4 ${lanIp}`
       );
+      // Insert a=ice-lite after session attributes if not present
+      if (!/^a=ice-lite/m.test(patchedSdp)) {
+        patchedSdp = patchedSdp.replace(
+          /^(a=msid-semantic:WMS \*.*)$/m,
+          `$1\na=ice-lite`
+        );
+      }
+      // Insert a=end-of-candidates after last candidate if not present
+      if (!/^a=end-of-candidates/m.test(patchedSdp)) {
+        patchedSdp = patchedSdp.replace(
+          /(a=candidate:.*\n)+/g,
+          (candidates) => candidates + "a=end-of-candidates\n"
+        );
+      }
       logWithFile(`[SDP OFFER BEGIN]\n${patchedSdp}\n[SDP OFFER END]`);
       localSdpOffer = patchedSdp;
       hasLocalOffer = true;
