@@ -8,8 +8,9 @@ import nodeDataChannel, {
 } from "node-datachannel";
 import qrcode from "qrcode";
 import { encodeQR } from 'qr'
-import { executeKeystrokes } from "./helpers";
+import { executeKeystrokes, getLocalIpAddress } from "./helpers";
 import https from "https";
+import fs from "fs";
 
 // Helper to fetch nearest STUN servers from always-online-stun project using geolocation
 async function fetchStunServers(): Promise<string[]> {
@@ -122,19 +123,32 @@ export async function startWebRTCServer({
   onQr,
   onQrReset,
 }: WebRTCServerOptions) {
+  // Helper to also write logs to a file for debugging
+  function persistLog(msg: string) {
+    try {
+      fs.appendFileSync("webrtc-debug.log", msg + "\n");
+    } catch (e) {
+      // ignore file write errors
+    }
+  }
+  // Wrap onLog to also persist logs
+  function logWithFile(msg: string) {
+    onLog(msg);
+    persistLog(msg);
+  }
   // Dynamically fetch STUN servers at startup
-  onLog("[DEBUG] Fetching STUN server list from always-online-stun...");
+  logWithFile("[DEBUG] Fetching STUN server list from always-online-stun...");
   // For LAN-only mode, use host candidates only (no STUN)
   let stunServers: string[] = [];
   if (process.env.LAN_ONLY === "1") {
-    onLog("[DEBUG] LAN_ONLY mode: using only host ICE candidates (no STUN servers).");
+    logWithFile("[DEBUG] LAN_ONLY mode: using only host ICE candidates (no STUN servers).");
     stunServers = [];
   } else {
     try {
       stunServers = await fetchStunServers();
-      onLog(`[DEBUG] Fetched ${stunServers.length} STUN servers.`);
+      logWithFile(`[DEBUG] Fetched ${stunServers.length} STUN servers: ${JSON.stringify(stunServers)}`);
     } catch (err) {
-      onLog(`[WARN] Failed to fetch STUN servers, falling back to default: ${err}`);
+      logWithFile(`[WARN] Failed to fetch STUN servers, falling back to default: ${err}`);
       stunServers = [
         "stun:stun.nextcloud.com:3478",
         "stun:stun.stunprotocol.org:3478",
@@ -282,43 +296,43 @@ export async function startWebRTCServer({
     });
   };
 
-  onLog("Initializing WebRTC PeerConnection...");
+  logWithFile("Initializing WebRTC PeerConnection...");
   const rtcConfig: RtcConfig = { 
     iceServers: stunServers
   };
-  onLog(`[DEBUG] Using RTC Configuration: ${JSON.stringify(rtcConfig)}`);
+  logWithFile(`[DEBUG] Using RTC Configuration: ${JSON.stringify(rtcConfig)}`);
     try {
       pc = new PeerConnection("barbarcode-server-peer", rtcConfig);
-      onLog("[DEBUG] PeerConnection created successfully");
+      logWithFile("[DEBUG] PeerConnection created successfully");
 
       // Log ice state changes
       pc.onIceStateChange((state: string) => {
-        onLog(`[DEBUG] ICE state changed to: ${state}`);
+        logWithFile(`[DEBUG] ICE state changed to: ${state}`);
       });
 
       // Log gathering state changes and trigger QR code generation
       pc.onGatheringStateChange((state: string) => {
-        onLog(`[DEBUG] Gathering state changed to: ${state}`);
+        logWithFile(`[DEBUG] Gathering state changed to: ${state}`);
         if (state === "complete") {
           iceGatheringComplete = true;
-          onLog(`[DEBUG] ICE gathering completed, hasLocalOffer=${hasLocalOffer}`);
+          logWithFile(`[DEBUG] ICE gathering completed, hasLocalOffer=${hasLocalOffer}`);
           if (hasLocalOffer) generateAndDisplayQrCodes();
         }
       });
 
     } catch (error) {
-      onLog(`Failed to create PeerConnection: ${error}`);
+      logWithFile(`Failed to create PeerConnection: ${error}`);
       return;
     }
 
   pc.onStateChange((state: string) => {
-    onLog(`PeerConnection state: ${state}`);
+    logWithFile(`PeerConnection state: ${state}`);
     if (
       state === "disconnected" ||
       state === "failed" ||
       state === "closed"
     ) {
-      onLog("PeerConnection disconnected, failed or closed. Resetting.");
+      logWithFile("PeerConnection disconnected, failed or closed. Resetting.");
       dc?.close();
       pc?.close();
       dc = null;
@@ -334,15 +348,26 @@ export async function startWebRTCServer({
   });
 
   pc.onLocalDescription((sdp: string, type: DescriptionType) => {
-    onLog(`[DEBUG] Local description ready (type: ${type as string})`);
+    logWithFile(`[DEBUG] Local description ready (type: ${type as string})`);
     if ((type as string).toLowerCase() === "offer") {
-      onLog(`[DEBUG] Got local SDP offer, length: ${sdp.length}`);
-      localSdpOffer = sdp;
+      logWithFile(`[DEBUG] Got local SDP offer, length: ${sdp.length}`);
+      // Patch SDP origin and connection lines to use LAN IP instead of 127.0.0.1/0.0.0.0
+      const lanIp = getLocalIpAddress();
+      let patchedSdp = sdp.replace(
+        /^o=rtc\s+\d+\s+\d+\s+IN IP4 127\.0\.0\.1/m,
+        (line) => line.replace("127.0.0.1", lanIp)
+      );
+      patchedSdp = patchedSdp.replace(
+        /^c=IN IP4 0\.0\.0\.0/m,
+        `c=IN IP4 ${lanIp}`
+      );
+      logWithFile(`[SDP OFFER BEGIN]\n${patchedSdp}\n[SDP OFFER END]`);
+      localSdpOffer = patchedSdp;
       hasLocalOffer = true;
-      onLog(`[DEBUG] iceGatheringComplete=${iceGatheringComplete}`);
+      logWithFile(`[DEBUG] iceGatheringComplete=${iceGatheringComplete}`);
       if (iceGatheringComplete) generateAndDisplayQrCodes();
     } else {
-      onLog(
+      logWithFile(
         `Received local description of type ${type as string}, expected "Offer".`
       );
     }
@@ -350,16 +375,17 @@ export async function startWebRTCServer({
 
   pc.onLocalCandidate((candidate: string | null, mid: string | null) => {
     if (candidate && mid) {
-      onLog(
+      logWithFile(
         `[DEBUG] Got local ICE candidate: ${candidate.substring(0, 30)}... (mid: ${mid})`
       );
+      logWithFile(`[ICE CANDIDATE] ${candidate} (mid: ${mid})`);
       gatheredLocalCandidates.push({ candidate, mid });
-      onLog(`[DEBUG] Total ICE candidates gathered so far: ${gatheredLocalCandidates.length}`);
+      logWithFile(`[DEBUG] Total ICE candidates gathered so far: ${gatheredLocalCandidates.length}`);
     } else {
-      onLog("[DEBUG] ICE gathering completed (null candidate received)");
-      onLog(`[DEBUG] Final ICE candidate count: ${gatheredLocalCandidates.length}`);
+      logWithFile("[DEBUG] ICE gathering completed (null candidate received)");
+      logWithFile(`[DEBUG] Final ICE candidate count: ${gatheredLocalCandidates.length}`);
       iceGatheringComplete = true;
-      onLog(`[DEBUG] SDP offer ready: ${!!localSdpOffer}, hasLocalOffer: ${hasLocalOffer}`);
+      logWithFile(`[DEBUG] SDP offer ready: ${!!localSdpOffer}, hasLocalOffer: ${hasLocalOffer}`);
       if (hasLocalOffer) generateAndDisplayQrCodes();
     }
   });
@@ -370,11 +396,11 @@ export async function startWebRTCServer({
     setupDataChannelEventHandlers(dc);
 
     // Create local description to start signaling
-    onLog("[DEBUG] Starting signaling process...");
+    logWithFile("[DEBUG] Starting signaling process...");
     pc.setLocalDescription(); // Should trigger offer generation and onLocalDescription callback
-    onLog("[DEBUG] Called setLocalDescription without arguments to generate offer");
+    logWithFile("[DEBUG] Called setLocalDescription without arguments to generate offer");
   } catch (error) {
-    onLog(`Failed to create DataChannel or offer: ${error}`);
+    logWithFile(`Failed to create DataChannel or offer: ${error}`);
     pc?.close();
     pc = null;
   }

@@ -194,12 +194,12 @@ export default function App() {
         resetWebRTCState();
         return;
       }
-      let iceServers: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+      let iceServers: RTCIceServer[] = [];
       if (serverOffer.iceServers && Array.isArray(serverOffer.iceServers) && serverOffer.iceServers.length > 0) {
         iceServers = serverOffer.iceServers.map(url => ({ urls: url }));
         debugLog("Using ICE servers from offer: " + JSON.stringify(iceServers));
       } else {
-        debugLog("Using default ICE server.");
+        debugLog("Using only host ICE candidates (no STUN/TURN).");
       }
       debugLog("Parsed server offer, creating RTCPeerConnection...");
       const pc = new RTCPeerConnection({
