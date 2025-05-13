@@ -50,16 +50,19 @@ export async function startWebRTCServer({
   let iceGatheringSignaledComplete = false;
 
   const displayQrCodeChunk = async (chunk: ChunkedData) => {
+    onLog(`[DEBUG] Entering displayQrCodeChunk for part ${chunk.part}/${chunk.length}`);
     try {
       const qrString = await qrcode.toString(JSON.stringify(chunk), {
         type: "terminal",
         small: true,
       });
+      onLog(`[DEBUG] QR code string generated, length: ${qrString.length}`);
       onQr(qrString, chunk.part, chunk.length);
       onLog(`Displaying QR Code (Part ${chunk.part}/${chunk.length})`);
     } catch (err) {
       onLog(`Error generating QR code: ${err}`);
     }
+    onLog(`[DEBUG] Exiting displayQrCodeChunk for part ${chunk.part}/${chunk.length}`);
   };
 
   const generateAndDisplayQrCodes = async () => {
@@ -163,6 +166,7 @@ export async function startWebRTCServer({
   const rtcConfig: RtcConfig = { iceServers: ["stun:stun.l.google.com:19302"] };
   try {
     pc = new PeerConnection("barbarcode-server-peer", rtcConfig);
+    onLog("[DEBUG] PeerConnection created successfully");
   } catch (error) {
     onLog(`Failed to create PeerConnection: ${error}`);
     return;
@@ -188,9 +192,11 @@ export async function startWebRTCServer({
   });
 
   pc.onLocalDescription((sdp: string, type: DescriptionType) => {
-    onLog(`Local description ready (type: ${type as string})`);
+    onLog(`[DEBUG] Local description ready (type: ${type as string})`);
     if ((type as string) === "Offer") {
+      onLog(`[DEBUG] Got local SDP offer, length: ${sdp.length}`);
       localSdpOffer = sdp;
+      onLog(`[DEBUG] iceGatheringSignaledComplete=${iceGatheringSignaledComplete}`);
       if (iceGatheringSignaledComplete) generateAndDisplayQrCodes();
     } else {
       onLog(
@@ -202,12 +208,15 @@ export async function startWebRTCServer({
   pc.onLocalCandidate((candidate: string | null, mid: string | null) => {
     if (candidate && mid) {
       onLog(
-        `Local ICE candidate: ${candidate.substring(0, 30)}... (mid: ${mid})`
+        `[DEBUG] Got local ICE candidate: ${candidate.substring(0, 30)}... (mid: ${mid})`
       );
       gatheredLocalCandidates.push({ candidate, mid });
+      onLog(`[DEBUG] Total ICE candidates gathered so far: ${gatheredLocalCandidates.length}`);
     } else {
-      onLog("All local ICE candidates gathered.");
+      onLog("[DEBUG] ICE gathering completed (null candidate received)");
+      onLog(`[DEBUG] Final ICE candidate count: ${gatheredLocalCandidates.length}`);
       iceGatheringSignaledComplete = true;
+      onLog(`[DEBUG] localSdpOffer is ${localSdpOffer ? 'ready' : 'not ready'}`);
       if (localSdpOffer) generateAndDisplayQrCodes();
     }
   });
@@ -216,8 +225,12 @@ export async function startWebRTCServer({
     dc = pc.createDataChannel("barbarcode-channel", { unordered: false });
     onLog(`DataChannel "${dc.getLabel()}" created by server.`);
     setupDataChannelEventHandlers(dc);
+
+    // Initialize signaling by setting local description (will trigger onLocalDescription)
+    onLog("[DEBUG] Starting signaling process...");
+    pc.setLocalDescription(); // This triggers offer generation internally
   } catch (error) {
-    onLog(`Failed to create DataChannel: ${error}`);
+    onLog(`Failed to create DataChannel or offer: ${error}`);
     pc?.close();
     pc = null;
   }

@@ -56,12 +56,25 @@ const ServerApp: React.FC = () => {
     addLog(`Active session: ${sessionName}`);
     addLog("Starting WebRTC signaling...");
 
+    // Capture all console.log/error output in the Ink UI
+    const origLog = console.log;
+    const origError = console.error;
+    console.log = (...args) => {
+      addLog(args.map(String).join(" "));
+      origLog(...args);
+    };
+    console.error = (...args) => {
+      addLog("[stderr] " + args.map(String).join(" "));
+      origError(...args);
+    };
+
     let cleanup: (() => void) | undefined;
 
     startWebRTCServer({
       sessionPattern,
       onLog: addLog,
       onQr: (qr, part, total) => {
+        addLog(`[DEBUG] onQr called, part ${part}/${total}, length: ${qr.length}`);
         setQrCodeString(qr);
         setCurrentQrPart(part);
         setTotalQrParts(total);
@@ -78,6 +91,8 @@ const ServerApp: React.FC = () => {
     return () => {
       addLog("Shutting down server...");
       if (cleanup) cleanup();
+      console.log = origLog;
+      console.error = origError;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

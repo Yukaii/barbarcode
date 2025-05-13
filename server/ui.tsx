@@ -10,22 +10,24 @@ interface UIProps {
 }
 
 export const App: React.FC<UIProps> = ({ qrCodeString, currentQrPart, totalQrParts, logs }) => (
-  <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan">
-    <Box flexDirection="row">
-      <Box width="50%" borderStyle="single" borderColor="green" padding={1} marginRight={1}>
+  <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan" height={process.stdout.rows}>
+    <Box flexDirection="column" flexGrow={1} flexBasis="70%">
+      <Box borderStyle="single" borderColor="green" padding={1} marginBottom={1}>
         <Text bold>
           QR Code Display {currentQrPart > 0 ? `(Part ${currentQrPart}/${totalQrParts})` : ''}
         </Text>
         <Newline />
-        <Text>{qrCodeString}</Text>
-      </Box>
-      <Box width="50%" borderStyle="single" borderColor="blue" padding={1}>
-        <Text bold>Server Logs</Text>
-        <Newline />
-        {logs.map((log, index) => (
-          <Text key={index}>{log}</Text>
+        {qrCodeString.split('\n').map((line, idx) => (
+          <Text key={idx}>{line}</Text>
         ))}
       </Box>
+    </Box>
+    <Box flexDirection="column" flexBasis="30%" height={Math.floor(process.stdout.rows * 0.3)} borderStyle="single" borderColor="blue" padding={1}>
+      <Text bold>Server Logs</Text>
+      <Newline />
+      {logs.map((log, index) => (
+        <Text key={index}>{log}</Text>
+      ))}
     </Box>
   </Box>
 );
