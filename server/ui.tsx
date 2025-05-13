@@ -11,14 +11,14 @@ interface UIProps {
 
 export const App: React.FC<UIProps> = ({ qrCodeString, currentQrPart, totalQrParts, logs }) => (
   <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan" height={process.stdout.rows}>
-    <Box flexDirection="column" flexGrow={1} flexBasis="70%">
-      <Box borderStyle="single" borderColor="green" padding={1} marginBottom={1}>
+    <Box flexDirection="column" flexGrow={1} flexBasis="70%" minHeight="70%">
+      <Box borderStyle="single" borderColor="green" padding={1} marginBottom={1} flexGrow={1} flexDirection="column">
         <Text bold>
           QR Code Display {currentQrPart > 0 ? `(Part ${currentQrPart}/${totalQrParts})` : ''}
         </Text>
         <Newline />
         {qrCodeString.split('\n').map((line, idx) => (
-          <Text key={idx}>{line}</Text>
+          <Text key={idx}>{line === "" ? " " : line}</Text>
         ))}
       </Box>
     </Box>

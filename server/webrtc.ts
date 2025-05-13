@@ -8,7 +8,8 @@ import nodeDataChannel, {
 import qrcode from "qrcode";
 import { executeKeystrokes } from "./helpers";
 
-nodeDataChannel.initLogger("Info");
+// Set a higher log level to reduce direct console output from the library
+nodeDataChannel.initLogger("Error"); 
 
 export interface SignalingMessageToServer {
   type: "answer";
@@ -49,6 +50,8 @@ export async function startWebRTCServer({
   let localSdpOffer: string | null = null;
   let iceGatheringComplete = false;
   let hasLocalOffer = false;
+  let isConnectionEstablished = false;
+  let qrLoopController: { stop: boolean } = { stop: false };
 
   const displayQrCodeChunk = async (chunk: ChunkedData) => {
     onLog(`[DEBUG] Entering displayQrCodeChunk for part ${chunk.part}/${chunk.length}`);
@@ -103,12 +106,21 @@ export async function startWebRTCServer({
       }
     }
     onLog("All QR code parts displayed. Waiting for client answer via DataChannel...");
+    // If connection not yet established, loop QR display
+    if (!isConnectionEstablished && !qrLoopController.stop) {
+      onLog("[DEBUG] Looping QR code display...");
+      setTimeout(() => generateAndDisplayQrCodes(), 1000); // Loop after a short delay
+    } else {
+      onLog("[DEBUG] QR code display loop stopped.");
+    }
   };
 
   const setupDataChannelEventHandlers = (currentDc: DataChannel) => {
     const currentDcLabel = currentDc.getLabel();
     currentDc.onOpen(() => {
       onLog(`DataChannel "${currentDcLabel}" opened!`);
+      isConnectionEstablished = true;
+      qrLoopController.stop = true; // Stop the QR loop
       onQrReset();
       currentDc.sendMessage("Hello from server! DataChannel is open.");
     });
@@ -210,6 +222,8 @@ export async function startWebRTCServer({
       localSdpOffer = null;
       iceGatheringComplete = false;
       hasLocalOffer = false;
+      isConnectionEstablished = false;
+      qrLoopController.stop = false; // Reset for next attempt
       onQr("Connection closed. Restart server to try again.", 0, 0);
     }
   });
@@ -263,6 +277,7 @@ export async function startWebRTCServer({
   // Return cleanup function
   return () => {
     onLog("Shutting down server...");
+    qrLoopController.stop = true; // Stop any ongoing QR loop
     dc?.close();
     pc?.close();
     // Suppress further node-datachannel logs
