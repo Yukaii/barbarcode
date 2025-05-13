@@ -61,7 +61,7 @@ export async function startWebRTCServer({
         type: "terminal",
         small: true,
       });
-      // const qrString = encodeQR(JSON.stringify(chunk), 'ascii', { border: 0, mask: 1 });
+      // PNG image saving disabled by user request
       onLog(`[DEBUG] QR code string generated, length: ${qrString.length}`);
       onQr(qrString, chunk.part, chunk.length);
       onLog(`Displaying QR Code (Part ${chunk.part}/${chunk.length})`);

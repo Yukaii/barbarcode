@@ -331,7 +331,19 @@ export default function App() {
       </div>
       <div className="bg-[#18181b] rounded-lg p-4 border border-[#333] mb-4">
         <h3 className="font-semibold mb-2 text-[#4ec9b0]">Debug Log:</h3>
-        <pre className="text-xs whitespace-pre-wrap">{log.join("\n")}</pre>
+        <div
+          className="text-xs whitespace-pre-wrap"
+          style={{
+            maxHeight: 200,
+            overflowY: "auto",
+            wordBreak: "break-all",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {log.map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-[#4ec9b0]">Collected QR Chunks:</h3>
