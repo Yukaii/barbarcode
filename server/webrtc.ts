@@ -29,7 +29,7 @@ export interface ChunkedData {
   data: string;
 }
 
-const MAX_QR_CHUNK_SIZE = 200;
+const MAX_QR_CHUNK_SIZE = 80;
 
 interface WebRTCServerOptions {
   sessionPattern: string;

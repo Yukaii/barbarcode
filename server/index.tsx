@@ -107,9 +107,21 @@ const ServerApp: React.FC = () => {
   );
 };
 
-// Render Ink UI
-render(
+/**
+ * Render Ink UI and handle graceful shutdown on SIGINT/SIGTERM.
+ */
+const inkApp = render(
   <StrictMode>
     <ServerApp />
   </StrictMode>
 );
+
+// Handle Ctrl+C and other termination signals
+const shutdown = () => {
+  inkApp.unmount();
+  // Give React cleanup a moment to run
+  setTimeout(() => process.exit(0), 100);
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);

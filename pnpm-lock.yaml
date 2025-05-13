@@ -23,6 +23,9 @@ importers:
       express:
         specifier: ^4.19.2
         version: 4.21.2
+      html5-qrcode:
+        specifier: ^2.3.8
+        version: 2.3.8
       ink:
         specifier: ^5.2.1
         version: 5.2.1(@types/react@18.3.21)(react@18.3.1)
@@ -1247,6 +1250,9 @@ packages:
 
   hpagent@0.1.2:
     resolution: {integrity: sha512-ePqFXHtSQWAFXYmj+JtOTHr84iNrII4/QRlAAPPE+zqnKy4xJo7Ie1Y4kC7AdB+LxLxSTTzBMASsEcy0q8YyvQ==}
+
+  html5-qrcode@2.3.8:
+    resolution: {integrity: sha512-jsr4vafJhwoLVEDW3n1KvPnCCXWaQfRng0/EEYk1vNcQGcG/htAdhJX0be8YyqMoSz7+hZvOZSTAepsabiuhiQ==}
 
   http-cache-semantics@4.2.0:
     resolution: {integrity: sha512-dTxcvPXqPvXBQpq5dUr6mEMJX4oIEFv6bwom3FDwKRDsuIjjJGANqhBuoAn9c1RQJIdAKav33ED65E2ys+87QQ==}
@@ -3347,6 +3353,8 @@ snapshots:
 
   hpagent@0.1.2:
     optional: true
+
+  html5-qrcode@2.3.8: {}
 
   http-cache-semantics@4.2.0: {}
 
