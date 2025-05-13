@@ -2,9 +2,9 @@
   "name": "barbarcode",
   "version": "0.1.1",
   "type": "module",
-  "main": "dist/server.cjs",
+  "main": "dist/server/index.cjs",
   "bin": {
-    "barbarcode": "./dist/server.cjs"
+    "barbarcode": "./dist/server/index.cjs"
   },
   "files": [
     "dist/",
@@ -13,9 +13,10 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build:server": "tsc -p tsconfig.app.json",
+    "dev:server": "tsx server/index.tsx",
     "build:landing": "vite build --config landing.vite.config.ts",
     "build": "vite build && pnpm run build:server",
-    "start": "node dist/server.cjs",
+    "start": "node dist/server/index.cjs",
     "dev": "vite",
     "dev:landing": "vite --config landing.vite.config.ts",
     "lint": "biome lint .",
@@ -26,19 +27,20 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@types/react": "^19.1.4",
-    "@types/react-dom": "^19.1.4",
+    "@types/react": "^18.3.21",
+    "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.4.1",
     "commander": "^12.1.0",
     "express": "^4.19.2",
+    "ink": "^5.2.1",
     "jquery": "^3.7.1",
     "ngrok": "5.0.0-beta.2",
     "node-datachannel": "^0.27.0",
     "qr": "^0.4.2",
     "qrcode": "^1.5.4",
     "quagga": "^0.12.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "robotjs": "^0.6.0",
     "toml": "^3.0.0",
     "ws": "^8.18.0"

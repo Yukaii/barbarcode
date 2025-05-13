@@ -3,9 +3,10 @@
   "compilerOptions": {
     "outDir": "dist",
     "noEmit": false,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "jsx": "react-jsx"
   },
   "include": [
-    "server.cts"
+    "server/**/*.{ts,tsx}"
   ]
 }
