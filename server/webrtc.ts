@@ -87,8 +87,7 @@ async function fetchStunServers(): Promise<string[]> {
 
 // Set a higher log level to reduce direct console output from the library
 // For debugging STUN issues, temporarily change to "Debug" or "Verbose":
-nodeDataChannel.initLogger("Debug"); 
-// nodeDataChannel.initLogger("Error"); 
+nodeDataChannel.initLogger("Verbose"); // Set to maximum verbosity for debugging
 
 export interface SignalingMessageToServer {
   type: "answer";
@@ -269,15 +268,28 @@ export async function startWebRTCServer({
       try {
         const clientMessage = JSON.parse(messageStr) as SignalingMessageToServer;
         if (clientMessage.type === "answer" && clientMessage.sdp && pc) {
-          onLog("Received answer SDP from client.");
-          pc.setRemoteDescription(clientMessage.sdp, "Answer" as DescriptionType);
-          if (clientMessage.candidates) {
-            onLog(
-              `Received ${clientMessage.candidates.length} remote ICE candidates with answer.`
-            );
-            clientMessage.candidates.forEach((c) => {
-              if (c.candidate && c.mid) pc?.addRemoteCandidate(c.candidate, c.mid);
-            });
+          logWithFile("[DEBUG] Processing client answer...");
+          logWithFile(`[DEBUG] Answer SDP:\n${clientMessage.sdp}`);
+          try {
+            pc.setRemoteDescription(clientMessage.sdp, "Answer" as DescriptionType);
+            logWithFile("[DEBUG] Successfully set remote description from answer");
+            
+            if (clientMessage.candidates) {
+              logWithFile(`[DEBUG] Processing ${clientMessage.candidates.length} remote ICE candidates`);
+              for (const c of clientMessage.candidates) {
+                if (c.candidate && c.mid) {
+                  try {
+                    logWithFile(`[DEBUG] Adding remote candidate: ${c.candidate}`);
+                    pc.addRemoteCandidate(c.candidate, c.mid);
+                  } catch (e) {
+                    logWithFile(`[ERROR] Failed to add remote candidate: ${e}`);
+                  }
+                }
+              }
+              logWithFile("[DEBUG] Finished processing remote candidates");
+            }
+          } catch (e) {
+            logWithFile(`[ERROR] Failed to set remote description: ${e}`);
           }
         } else {
           // Assuming barcode data if not an answer
@@ -330,7 +342,8 @@ export async function startWebRTCServer({
     }
 
   pc.onStateChange((state: string) => {
-    logWithFile(`PeerConnection state: ${state}`);
+    logWithFile(`[DEBUG] PeerConnection state changed to: ${state}`);
+    logWithFile(`[DEBUG] Current DataChannel state: ${dc ? dc.isOpen() ? 'open' : 'closed' : 'no datachannel'}`);
     if (
       state === "disconnected" ||
       state === "failed" ||
