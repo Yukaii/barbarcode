@@ -104,14 +104,14 @@ export async function startWebRTCServer({
       };
       await displayQrCodeChunk(chunk);
       if (i < totalLength - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
     onLog("All QR code parts displayed. Waiting for client answer via DataChannel...");
     // If connection not yet established, loop QR display
     if (!isConnectionEstablished && !qrLoopController.stop) {
       onLog("[DEBUG] Looping QR code display...");
-      setTimeout(() => generateAndDisplayQrCodes(), 1000); // Loop after a short delay
+      setTimeout(() => generateAndDisplayQrCodes(), 500); // Loop after a short delay
     } else {
       onLog("[DEBUG] QR code display loop stopped.");
     }

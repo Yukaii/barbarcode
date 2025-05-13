@@ -12,7 +12,7 @@ type ChunkedData = {
 type ServerOfferMessage = {
   type: "offer";
   sdp: string;
-  candidates: RTCIceCandidateInit[];
+  candidates: { candidate: string; mid: string }[];
 };
 
 type ClientAnswerMessage = {
@@ -200,9 +200,17 @@ export default function App() {
       });
       pcRef.current = pc;
 
+      // Collect local ICE candidates
+      const localCandidates: { candidate: string; mid: string }[] = [];
       pc.onicecandidate = (event) => {
         if (event.candidate) {
           debugLog(`Local ICE candidate: ${event.candidate.candidate}`);
+          if (event.candidate.candidate && event.candidate.sdpMid) {
+            localCandidates.push({
+              candidate: event.candidate.candidate,
+              mid: event.candidate.sdpMid,
+            });
+          }
         }
       };
       pc.oniceconnectionstatechange = () => {
@@ -225,7 +233,12 @@ export default function App() {
       );
       for (const candidate of serverOffer.candidates) {
         if (candidate.candidate) {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          // Map 'mid' to 'sdpMid' for browser compatibility
+          const rtcCandidate = {
+            candidate: candidate.candidate,
+            sdpMid: candidate.mid ?? null,
+          };
+          await pc.addIceCandidate(new RTCIceCandidate(rtcCandidate));
         }
       }
       const answer = await pc.createAnswer();
@@ -256,7 +269,6 @@ export default function App() {
 
       // Send answer and local ICE candidates to server via DataChannel
       if (dcRef.current && dcRef.current.readyState === "open") {
-        const localCandidates: RTCIceCandidateInit[] = [];
         const answerMsg: ClientAnswerMessage = {
           type: "answer",
           sdp: pc.localDescription!.sdp!,
