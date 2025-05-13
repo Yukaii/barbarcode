@@ -51,9 +51,20 @@ export default function App() {
     if (manualQr.trim()) {
       debugLog("Manual QR input started.");
       debugLog(`Manual QR input: ${manualQr}`);
-      handleQrCode(manualQr.trim());
+      // Support multi-line input: each line is a chunk JSON
+      const lines = manualQr.trim().split(/\r?\n/);
+      let anyValid = false;
+      for (const line of lines) {
+        if (line.trim()) {
+          handleQrCode(line.trim());
+          anyValid = true;
+        }
+      }
       setManualQr("");
       debugLog("Manual QR input finished.");
+      if (!anyValid) {
+        debugLog("No valid QR chunks found in input.");
+      }
     }
   };
 

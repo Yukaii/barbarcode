@@ -206,6 +206,7 @@ export async function startWebRTCServer({
     onLog(`[DEBUG] - Total QR parts: ${totalLength}`);
     onLog(`[DEBUG] ===========================================`);
 
+    const allChunks: ChunkedData[] = [];
     for (let i = 0; i < totalLength; i++) {
       const chunkDataStr = fullOfferPayload.substring(
         i * MAX_QR_CHUNK_SIZE,
@@ -216,11 +217,14 @@ export async function startWebRTCServer({
         length: totalLength,
         data: Buffer.from(chunkDataStr).toString("base64"),
       };
+      allChunks.push(chunk);
       await displayQrCodeChunk(chunk);
       if (i < totalLength - 1) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
+    // Log all chunks as a single block for easy copy-paste
+    persistLog(`[ALL QR CHUNKS]\n${allChunks.map(c => JSON.stringify(c)).join('\n')}\n[/ALL QR CHUNKS]`);
     onLog("All QR code parts displayed. Waiting for client answer via DataChannel...");
     // If connection not yet established, loop QR display
     if (!isConnectionEstablished && !qrLoopController.stop) {
