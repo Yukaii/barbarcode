@@ -49,14 +49,17 @@ export default function App() {
 
   const handleManualQrInput = () => {
     if (manualQr.trim()) {
+      debugLog("Manual QR input started.");
       debugLog(`Manual QR input: ${manualQr}`);
       handleQrCode(manualQr.trim());
       setManualQr("");
+      debugLog("Manual QR input finished.");
     }
   };
 
   // Camera scan handlers
   const startCameraScan = async () => {
+    debugLog("Camera scan started.");
     setScanning(true);
     setTimeout(async () => {
       if (!html5QrCodeRef.current) {
@@ -75,7 +78,15 @@ export default function App() {
             stopCameraScan();
           },
           (errorMessage) => {
-            // Optionally log scan errors
+            // Suppress "NotFoundException" (no QR detected in frame)
+            if (
+              typeof errorMessage === "string" &&
+              errorMessage.includes("NotFoundException")
+            ) {
+              // Do not log this common error
+              return;
+            }
+            debugLog(`Camera scan error: ${errorMessage}`);
           }
         );
       } catch (err) {
@@ -86,6 +97,7 @@ export default function App() {
   };
 
   const stopCameraScan = async () => {
+    debugLog("Camera scan stopped.");
     setScanning(false);
     if (html5QrCodeRef.current) {
       try {
@@ -109,9 +121,11 @@ export default function App() {
         debugLog(`Received QR chunk: part ${chunk.part}/${chunk.length}`);
         handleSignalingChunk(chunk);
         return;
+      } else {
+        debugLog("QR code JSON does not match expected chunk structure.");
       }
     } catch (e) {
-      // Not a signaling chunk, ignore for now
+      debugLog("Scanned QR is not valid JSON or not a signaling chunk.");
     }
     // If not a signaling chunk, ignore (for now)
   }
@@ -128,8 +142,16 @@ export default function App() {
       debugLog("Signaling already processed, ignoring further QR chunks.");
       return;
     }
+    if (chunk.part < 1 || chunk.part > chunk.length) {
+      debugLog(`Chunk part ${chunk.part} out of range (1-${chunk.length}), ignoring.`);
+      return;
+    }
     setTotalChunks((prev) => (prev === -1 ? chunk.length : prev));
     setQrChunks((prev) => {
+      if (prev[chunk.part]) {
+        debugLog(`Duplicate chunk received for part ${chunk.part}, ignoring.`);
+        return prev;
+      }
       const updated = { ...prev, [chunk.part]: base64ToUtf8(chunk.data) };
       const receivedChunks = Object.keys(updated).length;
       debugLog(`Collected ${receivedChunks}/${chunk.length} QR chunks.`);

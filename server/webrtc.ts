@@ -6,6 +6,7 @@ import nodeDataChannel, {
   RtcConfig,
 } from "node-datachannel";
 import qrcode from "qrcode";
+import { encodeQR } from 'qr'
 import { executeKeystrokes } from "./helpers";
 
 // Set a higher log level to reduce direct console output from the library
@@ -29,7 +30,7 @@ export interface ChunkedData {
   data: string;
 }
 
-const MAX_QR_CHUNK_SIZE = 80;
+const MAX_QR_CHUNK_SIZE = 60;
 
 interface WebRTCServerOptions {
   sessionPattern: string;
@@ -60,6 +61,7 @@ export async function startWebRTCServer({
         type: "terminal",
         small: true,
       });
+      // const qrString = encodeQR(JSON.stringify(chunk), 'ascii', { border: 0, mask: 1 });
       onLog(`[DEBUG] QR code string generated, length: ${qrString.length}`);
       onQr(qrString, chunk.part, chunk.length);
       onLog(`Displaying QR Code (Part ${chunk.part}/${chunk.length})`);

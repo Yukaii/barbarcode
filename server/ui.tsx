@@ -1,6 +1,6 @@
 // server/ui.tsx
-import React from 'react';
-import { Box, Text, Newline } from 'ink';
+import React, { useRef, useEffect, useState } from 'react';
+import { Box, Text, Newline, measureElement } from 'ink';
 
 interface UIProps {
   qrCodeString: string;
@@ -9,25 +9,56 @@ interface UIProps {
   logs: string[];
 }
 
-export const App: React.FC<UIProps> = ({ qrCodeString, currentQrPart, totalQrParts, logs }) => (
-  <Box flexDirection="column" padding={1} borderStyle="round" borderColor="cyan" height={process.stdout.rows}>
-    <Box flexDirection="column" flexGrow={1} flexBasis="70%" minHeight="70%">
-      <Box borderStyle="single" borderColor="green" padding={1} marginBottom={1} flexGrow={1} flexDirection="column">
-        <Text bold>
-          QR Code Display {currentQrPart > 0 ? `(Part ${currentQrPart}/${totalQrParts})` : ''}
-        </Text>
+export const App: React.FC<UIProps> = ({ qrCodeString, currentQrPart, totalQrParts, logs }) => {
+  const qrBoxRef = useRef(null);
+  const [qrBoxHeight, setQrBoxHeight] = useState(0);
+
+  useEffect(() => {
+    if (qrBoxRef.current) {
+      const { height } = measureElement(qrBoxRef.current);
+      setQrBoxHeight(height);
+    }
+  }, [qrCodeString]);
+
+  const qrLines = qrCodeString.split('\n');
+  const isTruncated = qrBoxHeight > 0 && qrLines.length > qrBoxHeight;
+
+  return (
+    <Box flexDirection="column" padding={1} height={process.stdout.rows}>
+      <Box flexDirection="column" flexGrow={1} flexBasis="70%" minHeight="70%">
+        <Box
+          borderStyle="classic"
+          borderColor="green"
+          padding={0}
+          marginBottom={0}
+          flexGrow={1}
+          flexDirection="column"
+          ref={qrBoxRef}
+        >
+          <Text bold>
+            QR Code Display {currentQrPart > 0 ? `(Part ${currentQrPart}/${totalQrParts})` : ''}
+          </Text>
+          {isTruncated && (
+            <>
+              <Newline />
+              <Text color="red" bold>
+                Warning: Terminal not tall enough! Increase terminal height to display the full QR code for scanning.
+              </Text>
+            </>
+          )}
+          <Newline />
+          {qrLines.map((line, idx) => (
+            <Text key={idx}>{line === "" ? " " : line}</Text>
+          ))}
+        </Box>
+      </Box>
+      <Box flexDirection="column" flexBasis="30%" height={Math.floor(process.stdout.rows * 0.2)} borderStyle="single" borderColor="blue" padding={1}>
+        <Text bold>Server Logs</Text>
         <Newline />
-        {qrCodeString.split('\n').map((line, idx) => (
-          <Text key={idx}>{line === "" ? " " : line}</Text>
+        {logs.map((log, index) => (
+          <Text key={index}>{log}</Text>
         ))}
       </Box>
     </Box>
-    <Box flexDirection="column" flexBasis="30%" height={Math.floor(process.stdout.rows * 0.3)} borderStyle="single" borderColor="blue" padding={1}>
-      <Text bold>Server Logs</Text>
-      <Newline />
-      {logs.map((log, index) => (
-        <Text key={index}>{log}</Text>
-      ))}
-    </Box>
-  </Box>
-);
+  );
+};
