@@ -1,4 +1,5 @@
 // server/webrtc.ts
+// server/webrtc.ts
 import nodeDataChannel, {
   PeerConnection,
   DataChannel,
@@ -8,9 +9,85 @@ import nodeDataChannel, {
 import qrcode from "qrcode";
 import { encodeQR } from 'qr'
 import { executeKeystrokes } from "./helpers";
+import https from "https";
+
+// Helper to fetch nearest STUN servers from always-online-stun project using geolocation
+async function fetchStunServers(): Promise<string[]> {
+  const VALID_HOSTS = "https://raw.githubusercontent.com/pradt2/always-online-stun/master/valid_hosts.txt";
+  const GEO_LOC_URL = "https://raw.githubusercontent.com/pradt2/always-online-stun/master/geoip_cache.txt";
+  const GEO_USER_URL = "https://geolocation-db.com/json/";
+
+  function fetchJson(url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = "";
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }).on("error", (err) => reject(err));
+    });
+  }
+
+  function fetchText(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = "";
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => resolve(data));
+      }).on("error", (err) => reject(err));
+    });
+  }
+
+  try {
+    const [geoLocs, userGeo, hostsText] = await Promise.all([
+      fetchJson(GEO_LOC_URL),
+      fetchJson(GEO_USER_URL),
+      fetchText(VALID_HOSTS)
+    ]);
+    const { latitude, longitude } = userGeo;
+    const servers = hostsText.trim().split('\n')
+      .map(addr => {
+        const [stunLat, stunLon] = geoLocs[addr.split(':')[0]] || [null, null];
+        let dist = Number.POSITIVE_INFINITY;
+        if (stunLat !== null && stunLon !== null && latitude && longitude) {
+          dist = Math.sqrt((latitude - stunLat) ** 2 + (longitude - stunLon) ** 2);
+        }
+        return { addr, dist };
+      })
+      .filter(({ addr }) => addr && !addr.startsWith("#"))
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, 10)
+      .map(({ addr }) => `stun:${addr}`);
+    return servers;
+  } catch (err) {
+    // fallback to first 10 if geo fails
+    return new Promise((resolve, reject) => {
+      https.get(VALID_HOSTS, (res) => {
+        let data = "";
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => {
+          const servers = data
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith("#"))
+            .map(addr => `stun:${addr}`)
+            .slice(0, 10);
+          resolve(servers);
+        });
+      }).on("error", (err) => reject(err));
+    });
+  }
+}
 
 // Set a higher log level to reduce direct console output from the library
-nodeDataChannel.initLogger("Error"); 
+// For debugging STUN issues, temporarily change to "Debug" or "Verbose":
+nodeDataChannel.initLogger("Debug"); 
+// nodeDataChannel.initLogger("Error"); 
 
 export interface SignalingMessageToServer {
   type: "answer";
@@ -45,6 +122,28 @@ export async function startWebRTCServer({
   onQr,
   onQrReset,
 }: WebRTCServerOptions) {
+  // Dynamically fetch STUN servers at startup
+  onLog("[DEBUG] Fetching STUN server list from always-online-stun...");
+  // For LAN-only mode, use host candidates only (no STUN)
+  let stunServers: string[] = [];
+  if (process.env.LAN_ONLY === "1") {
+    onLog("[DEBUG] LAN_ONLY mode: using only host ICE candidates (no STUN servers).");
+    stunServers = [];
+  } else {
+    try {
+      stunServers = await fetchStunServers();
+      onLog(`[DEBUG] Fetched ${stunServers.length} STUN servers.`);
+    } catch (err) {
+      onLog(`[WARN] Failed to fetch STUN servers, falling back to default: ${err}`);
+      stunServers = [
+        "stun:stun.nextcloud.com:3478",
+        "stun:stun.stunprotocol.org:3478",
+        "stun:stun.voip.blackberry.com:3478",
+        "stun:stun.sipnet.net:3478",
+        "stun:stun.ideasip.com:3478"
+      ];
+    }
+  }
   let pc: PeerConnection | null = null;
   let dc: DataChannel | null = null;
   const gatheredLocalCandidates: { candidate: string; mid: string }[] = [];
@@ -77,10 +176,11 @@ export async function startWebRTCServer({
       return;
     }
 
-    const offerToClient: SignalingMessageToClient = {
+    const offerToClient: SignalingMessageToClient & { iceServers: string[] } = {
       type: "offer",
       sdp: localSdpOffer,
       candidates: gatheredLocalCandidates,
+      iceServers: rtcConfig.iceServers as string[],
     };
 
     const fullOfferPayload = JSON.stringify(offerToClient);
@@ -183,7 +283,10 @@ export async function startWebRTCServer({
   };
 
   onLog("Initializing WebRTC PeerConnection...");
-  const rtcConfig: RtcConfig = { iceServers: ["stun:stun.l.google.com:19302"] };
+  const rtcConfig: RtcConfig = { 
+    iceServers: stunServers
+  };
+  onLog(`[DEBUG] Using RTC Configuration: ${JSON.stringify(rtcConfig)}`);
     try {
       pc = new PeerConnection("barbarcode-server-peer", rtcConfig);
       onLog("[DEBUG] PeerConnection created successfully");

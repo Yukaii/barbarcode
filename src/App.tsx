@@ -18,7 +18,7 @@ type ServerOfferMessage = {
 type ClientAnswerMessage = {
   type: "answer";
   sdp: string;
-  candidates: RTCIceCandidateInit[];
+  candidates: { candidate: string; mid: string }[]; // Corrected to match server expectation and actual usage
 };
 
 export default function App() {
@@ -188,15 +188,22 @@ export default function App() {
   async function processOffer(offerJson: string) {
     setSignalingOfferProcessed(true);
     try {
-      const serverOffer = JSON.parse(offerJson) as ServerOfferMessage;
+      const serverOffer = JSON.parse(offerJson) as ServerOfferMessage & { iceServers?: string[] };
       if (serverOffer.type !== "offer" || !serverOffer.sdp) {
         debugLog("Invalid offer structure.");
         resetWebRTCState();
         return;
       }
+      let iceServers: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+      if (serverOffer.iceServers && Array.isArray(serverOffer.iceServers) && serverOffer.iceServers.length > 0) {
+        iceServers = serverOffer.iceServers.map(url => ({ urls: url }));
+        debugLog("Using ICE servers from offer: " + JSON.stringify(iceServers));
+      } else {
+        debugLog("Using default ICE server.");
+      }
       debugLog("Parsed server offer, creating RTCPeerConnection...");
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        iceServers,
       });
       pcRef.current = pc;
 
@@ -246,37 +253,97 @@ export default function App() {
 
       // Wait for ICE gathering to complete
       await new Promise<void>((resolve) => {
-        if (pc.iceGatheringState === "complete") return resolve();
+        if (pc.iceGatheringState === "complete") {
+          debugLog("Local ICE gathering complete.");
+          return resolve();
+        }
         pc.onicegatheringstatechange = () => {
-          if (pc.iceGatheringState === "complete") resolve();
+          if (pc.iceGatheringState === "complete") {
+            debugLog("Local ICE gathering complete (event).");
+            resolve();
+          }
         };
       });
 
-      // Wait for data channel to be open
+      // Wait for dcRef.current to be populated by pc.ondatachannel
+      debugLog("Waiting for DataChannel object to be available from server...");
       await new Promise<void>((resolve, reject) => {
-        if (dcRef.current && dcRef.current.readyState === "open") return resolve();
-        const timeout = setTimeout(
-          () => reject(new Error("DataChannel not open in time")),
-          5000
-        );
-        if (dcRef.current) {
-          dcRef.current.onopen = () => {
-            clearTimeout(timeout);
+        const checkInterval = 100; // ms
+        let elapsedTime = 0;
+        const maxWaitTime = 7000; // ms, 7 seconds
+
+        const intervalId = setInterval(() => {
+          if (dcRef.current) {
+            clearInterval(intervalId);
+            debugLog("DataChannel object (dcRef.current) is now available.");
             resolve();
-          };
-        }
+          } else {
+            elapsedTime += checkInterval;
+            if (elapsedTime >= maxWaitTime) {
+              clearInterval(intervalId);
+              debugLog(`Timeout: dcRef.current not set by ondatachannel within ${maxWaitTime / 1000}s.`);
+              reject(new Error("DataChannel object not received from server in time"));
+            }
+          }
+        }, checkInterval);
       });
 
       // Send answer and local ICE candidates to server via DataChannel
-      if (dcRef.current && dcRef.current.readyState === "open") {
+      // dcRef.current is now available, but its readyState might not be 'open' yet.
+      // The browser's WebRTC stack should queue the message if the channel is opening.
+      if (dcRef.current) {
         const answerMsg: ClientAnswerMessage = {
           type: "answer",
           sdp: pc.localDescription!.sdp!,
-          candidates: localCandidates,
+          candidates: localCandidates, // Already in { candidate: string; mid: string }[] format
         };
         dcRef.current.send(JSON.stringify(answerMsg));
-        debugLog("Sent answer to server via DataChannel.");
+        debugLog("Attempted to send answer to server via DataChannel.");
+      } else {
+         // This path should ideally not be taken if the above promise resolved.
+         debugLog("Error: dcRef.current is null after waiting. Cannot send answer.");
+         resetWebRTCState();
+         return; // Abort
       }
+
+      // Now, wait for the data channel to actually confirm it's open for application messages
+      debugLog("Waiting for DataChannel.onopen event (confirmation after sending answer)...");
+      await new Promise<void>((resolve, reject) => {
+        if (!dcRef.current) { // Should not happen
+            reject(new Error("dcRef.current is null before onopen confirmation wait"));
+            return;
+        }
+        if (dcRef.current.readyState === "open") {
+           debugLog("DataChannel was already open (after sending answer).");
+           return resolve();
+        }
+        const onOpenTimeout = setTimeout(() => {
+            debugLog("Timeout waiting for DataChannel.onopen after sending answer.");
+            reject(new Error("DataChannel did not open in time (after sending answer)"));
+          }, 5000); // 5 seconds for onopen
+
+        const originalOnOpen = dcRef.current.onopen;
+        dcRef.current.onopen = function(this: RTCDataChannel, ev: Event) {
+          if (originalOnOpen) {
+            originalOnOpen.call(this, ev); 
+          }
+          clearTimeout(onOpenTimeout);
+          debugLog("DataChannel.onopen event fired (confirmation wait)!");
+          resolve();
+        };
+
+        const originalOnError = dcRef.current.onerror;
+        dcRef.current.onerror = function(this: RTCDataChannel, ev: Event) {
+            if (originalOnError) {
+                originalOnError.call(this, ev); 
+            }
+            clearTimeout(onOpenTimeout);
+            debugLog(`DataChannel error during onopen confirmation wait: type=${ev.type}`);
+            reject(new Error(`DataChannel error during onopen confirmation wait. Type: ${ev.type}`));
+        };
+      });
+      debugLog("DataChannel is confirmed open and ready for application messages.");
+
     } catch (e) {
       debugLog(`Error processing offer: ${e}`);
       resetWebRTCState();
@@ -285,11 +352,17 @@ export default function App() {
 
   function setupDataChannelEvents() {
     if (!dcRef.current) return;
-    dcRef.current.onopen = () => debugLog("DataChannel opened.");
-    dcRef.current.onclose = () => debugLog("DataChannel closed.");
-    dcRef.current.onerror = (err) => debugLog(`DataChannel error: ${err}`);
-    dcRef.current.onmessage = (event) => {
-      debugLog(`Message from server: ${event.data}`);
+    dcRef.current.onopen = function(this: RTCDataChannel, ev: Event) {
+      debugLog("DataChannel opened.");
+    };
+    dcRef.current.onclose = function(this: RTCDataChannel, ev: Event) { 
+      debugLog("DataChannel closed.");
+    };
+    dcRef.current.onerror = function(this: RTCDataChannel, ev: Event) {
+      debugLog(`DataChannel error: type=${ev.type}`);
+    };
+    dcRef.current.onmessage = function(this: RTCDataChannel, ev: MessageEvent) { 
+      debugLog(`Message from server: ${ev.data}`);
     };
   }
 
