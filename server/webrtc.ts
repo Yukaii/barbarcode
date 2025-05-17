@@ -185,14 +185,62 @@ export async function startWebRTCServer({
 
   const generateAndDisplayQrCodes = async () => {
     if (!localSdpOffer || !iceGatheringComplete) {
-      onLog(`[DEBUG] Not ready. SDP: ${!!localSdpOffer}, ICE complete: ${iceGatheringComplete}`);
+      onLog(`[DEBUG] Not ready for QR. SDP: ${!!localSdpOffer}, ICE complete: ${iceGatheringComplete}`);
       return;
     }
 
+    // Create the SDP that includes the candidate lines
+    let sdpString = localSdpOffer!; // localSdpOffer has been normalized to CRLF in onLocalDescription
+
+    if (gatheredLocalCandidates.length > 0) {
+        let lines = sdpString.split('\r\n');
+        // If the last line is empty because sdpString ended with \r\n, pop it for clean insertion.
+        if (lines.length > 0 && lines[lines.length - 1] === '') {
+            lines.pop();
+        }
+
+        let mLineIndex = -1;
+        for(let i=0; i < lines.length; i++) {
+            if (lines[i].startsWith('m=')) { // Find the first m-line
+                mLineIndex = i;
+                break;
+            }
+        }
+
+        if (mLineIndex === -1) {
+            logWithFile("[ERROR] No m-line found in SDP for candidate insertion. Appending candidates to end.");
+            // Fallback: Append candidates to the existing lines if no m-line found
+            const candidateStringsForSdp = gatheredLocalCandidates.map(c => c.candidate.trimEnd());
+            lines.push(...candidateStringsForSdp);
+        } else {
+            let insertAtIndex = lines.length; // Default: append to all lines (end of SDP)
+            // Find the end of the media section for the *first* m-line to insert candidates before the next m-line
+            for (let i = mLineIndex + 1; i < lines.length; i++) {
+                if (lines[i].startsWith('m=')) { // Found start of a subsequent media section
+                    insertAtIndex = i; // Insert before this new m-line
+                    break;
+                }
+            }
+            const candidateStringsForSdp = gatheredLocalCandidates.map(c => c.candidate.trimEnd());
+            lines.splice(insertAtIndex, 0, ...candidateStringsForSdp);
+            // Add a=end-of-candidates after all actual candidates in this media section
+            lines.splice(insertAtIndex + candidateStringsForSdp.length, 0, 'a=end-of-candidates');
+        }
+        sdpString = lines.join('\r\n');
+    }
+
+    // Ensure the final SDP string ends with exactly one CRLF, unless it's empty
+    if (sdpString.length > 0) {
+        sdpString = sdpString.replace(/(\r\n)*$/, '') + '\r\n';
+    }
+    
+    const sdpForPayload = sdpString; // Use the processed sdpString
+    logWithFile(`[FINAL SDP FOR QR]\n${sdpForPayload}\n[/FINAL SDP FOR QR]`);
+
     const offerToClient: SignalingMessageToClient & { iceServers: string[] } = {
       type: "offer",
-      sdp: localSdpOffer,
-      candidates: gatheredLocalCandidates,
+      sdp: sdpForPayload, // USE THE SDP WITH INLINED CANDIDATES
+      candidates: gatheredLocalCandidates, // Still send them separately (harmless redundancy)
       iceServers: rtcConfig.iceServers as string[],
     };
 
@@ -200,8 +248,9 @@ export async function startWebRTCServer({
     const totalLength = Math.ceil(fullOfferPayload.length / MAX_QR_CHUNK_SIZE);
     onLog(`[DEBUG] ===========================================`);
     onLog(`[DEBUG] Generating QR codes with:`);
-    onLog(`[DEBUG] - ICE candidates: ${gatheredLocalCandidates.length}`);
-    onLog(`[DEBUG] - SDP offer length: ${localSdpOffer.length}`);
+    onLog(`[DEBUG] - ICE candidates in list: ${gatheredLocalCandidates.length}`);
+    // Log length of the SDP that *actually* goes into the QR
+    onLog(`[DEBUG] - SDP offer length (in QR): ${sdpForPayload.length}`);
     onLog(`[DEBUG] - Total QR parts: ${totalLength}`);
     onLog(`[DEBUG] ===========================================`);
 
@@ -326,13 +375,22 @@ export async function startWebRTCServer({
         logWithFile(`[DEBUG] ICE state changed to: ${state}`);
       });
 
-      // Log gathering state changes and trigger QR code generation
+      // Log gathering state changes
       pc.onGatheringStateChange((state: string) => {
         logWithFile(`[DEBUG] Gathering state changed to: ${state}`);
         if (state === "complete") {
+          logWithFile(`[DEBUG] ICE gathering state is 'complete'. Setting iceGatheringComplete = true.`);
           iceGatheringComplete = true;
-          logWithFile(`[DEBUG] ICE gathering completed, hasLocalOffer=${hasLocalOffer}`);
-          if (hasLocalOffer) generateAndDisplayQrCodes();
+          // If local offer is already available, try to generate QR codes.
+          // This might be called when gatheredLocalCandidates is still empty if onLocalDescription
+          // hasn't fired yet, or if onLocalCandidate events for actual candidates are still pending.
+          // The looping nature of generateAndDisplayQrCodes should handle eventual consistency.
+          if (hasLocalOffer) {
+            logWithFile(`[DEBUG] onGatheringStateChange(complete): Offer was ready, generating QR codes.`);
+            generateAndDisplayQrCodes();
+          } else {
+            logWithFile(`[DEBUG] onGatheringStateChange(complete): Offer NOT YET ready. QR codes will be generated when offer is available.`);
+          }
         }
       });
 
@@ -378,25 +436,37 @@ export async function startWebRTCServer({
         /^c=IN IP4 0\.0\.0\.0/m,
         `c=IN IP4 ${lanIp}`
       );
-      // Insert a=ice-lite after session attributes if not present
-      if (!/^a=ice-lite/m.test(patchedSdp)) {
-        patchedSdp = patchedSdp.replace(
-          /^(a=msid-semantic:WMS \*.*)$/m,
-          `$1\na=ice-lite`
-        );
+      // Conditionally add a=ice-lite if in LAN_ONLY mode
+      if (process.env.LAN_ONLY === "1" && !/^a=ice-lite/m.test(patchedSdp)) {
+        // Insert after a=msid-semantic or a similar session-level attribute
+        // Ensure to use \r\n for new lines in SDP
+        const msidSemanticPattern = /^(a=msid-semantic:WMS .*)$/m;
+        if (msidSemanticPattern.test(patchedSdp)) {
+            patchedSdp = patchedSdp.replace(msidSemanticPattern, `$1\r\na=ice-lite`);
+        } else {
+            // Fallback: attempt to add it after other session attributes if msid-semantic is not found
+            // This might need a more robust way to find the end of session-level attributes
+            const sdpLines = patchedSdp.split(/\r\n|\n/);
+            let firstMLineIndex = sdpLines.findIndex(line => line.startsWith('m='));
+            if (firstMLineIndex === -1) firstMLineIndex = sdpLines.length; // if no m-line, append
+            sdpLines.splice(firstMLineIndex, 0, 'a=ice-lite');
+            patchedSdp = sdpLines.join('\r\n');
+        }
       }
-      // Insert a=end-of-candidates after last candidate if not present
-      if (!/^a=end-of-candidates/m.test(patchedSdp)) {
-        patchedSdp = patchedSdp.replace(
-          /(a=candidate:.*\n)+/g,
-          (candidates) => candidates + "a=end-of-candidates\n"
-        );
-      }
-      logWithFile(`[SDP OFFER BEGIN]\n${patchedSdp}\n[SDP OFFER END]`);
-      localSdpOffer = patchedSdp;
+      // The faulty a=end-of-candidates logic is removed.
+
+      logWithFile(`[SDP OFFER BEGIN (initial, patched for IP/ice-lite)]\n${patchedSdp}\n[SDP OFFER END (initial, patched for IP/ice-lite)]`);
+      // Normalize line endings to CRLF for internal storage and later use
+      localSdpOffer = patchedSdp.split(/\r\n|\n/).map(l => l.trimEnd()).join('\r\n');
       hasLocalOffer = true;
-      logWithFile(`[DEBUG] iceGatheringComplete=${iceGatheringComplete}`);
-      if (iceGatheringComplete) generateAndDisplayQrCodes();
+      
+      // Check if ICE gathering is also complete
+      if (iceGatheringComplete) {
+        logWithFile("[DEBUG] onLocalDescription: ICE was already complete, generating QR codes.");
+        generateAndDisplayQrCodes(); // Trigger QR generation
+      } else {
+        logWithFile("[DEBUG] onLocalDescription: ICE NOT YET complete, QR will be generated once ICE is done.");
+      }
     } else {
       logWithFile(
         `Received local description of type ${type as string}, expected "Offer".`
