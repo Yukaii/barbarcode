@@ -4,4 +4,8 @@ onlyBuiltDependencies:
   - core-js
   - esbuild
   - ngrok
+  - node-datachannel
   - robotjs
+
+patchedDependencies:
+  node-datachannel@0.27.0: patches/node-datachannel@0.27.0.patch
