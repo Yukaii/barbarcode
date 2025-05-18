@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  node-datachannel@0.27.0:
+    hash: 55b6bec7f36f795f587a5006a3a967dbc031289bb08073e51f4135d835277d20
+    path: patches/node-datachannel@0.27.0.patch
+
 importers:
 
   .:
@@ -37,7 +42,7 @@ importers:
         version: 5.0.0-beta.2
       node-datachannel:
         specifier: ^0.27.0
-        version: 0.27.0
+        version: 0.27.0(patch_hash=55b6bec7f36f795f587a5006a3a967dbc031289bb08073e51f4135d835277d20)
       qr:
         specifier: ^0.4.2
         version: 0.4.2
@@ -3684,7 +3689,7 @@ snapshots:
 
   node-bitmap@0.0.1: {}
 
-  node-datachannel@0.27.0:
+  node-datachannel@0.27.0(patch_hash=55b6bec7f36f795f587a5006a3a967dbc031289bb08073e51f4135d835277d20):
     dependencies:
       prebuild-install: 7.1.3
 

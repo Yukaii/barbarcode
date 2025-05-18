@@ -85,9 +85,22 @@ async function fetchStunServers(): Promise<string[]> {
   }
 }
 
-// Set a higher log level to reduce direct console output from the library
-// For debugging STUN issues, temporarily change to "Debug" or "Verbose":
-nodeDataChannel.initLogger("Verbose"); // Set to maximum verbosity for debugging
+/**
+ * Persist webrtc logs to a file.
+ */
+function persistLogger(level: string, message: string) {
+  try {
+    fs.appendFileSync("webrtc-debug.log", `[${level}] ${message}\n`);
+  } catch (e) {
+    // ignore file write errors
+  }
+}
+
+nodeDataChannel.initLogger('Debug');
+
+nodeDataChannel.setLogCallback((level, message) => {
+  persistLogger(`${level}`, message)
+});
 
 export interface SignalingMessageToServer {
   type: "answer";
