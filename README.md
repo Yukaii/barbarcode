@@ -34,12 +34,35 @@ npx barbarcode -p 8080 -s inventory_input
 
 4. Scan the QR code displayed by the server using your mobile device to start scanning barcodes!
 
+### Connection Modes
+
+Barbarcode supports two connection modes:
+
+1. **WebRTC Mode (Default)**: Uses a single-QR WebRTC flow for offline LAN connections
+   - Works without internet connectivity
+   - Requires only one QR code scan (no return-trip signaling)
+   - Ideal for secure environments or unstable networks
+
+2. **WebSocket Mode (Legacy)**: Uses traditional WebSockets
+   - Requires internet connectivity for ngrok tunnel
+   - More compatible with older browsers
+
+To select the connection mode:
+```sh
+# For WebRTC mode (default)
+barbarcode -p 8080 -s inventory_input --rtc
+
+# For WebSocket mode (legacy)
+barbarcode -p 8080 -s inventory_input --ws
+```
+
 ## Server
 
 The server component handles:
-- Running a WebSocket server for client connections
+- Running a WebRTC data channel server for client connections (in ICE-lite mode)
 - Converting scanned barcodes into keystrokes
 - Managing scanning sessions via CLI
+- Generating QR codes with WebRTC connection details
 
 ### Configuration
 
@@ -77,7 +100,7 @@ A mobile-first web client that:
 ## Libraries Used
 
 - Server:
-  - ws: WebSocket server
+  - node-datachannel: WebRTC data channel implementation
   - toml: TOML configuration parsing
   - commander: CLI interface
   - qr: QR code generation
@@ -85,7 +108,7 @@ A mobile-first web client that:
   - ngrok: Public URL tunneling
 
 - Client:
-  - html5-qrcode: QR code scanning
+  - WebRTC: Browser WebRTC API for data channels
   - quaggaJS: Barcode scanning
 
 ## License
