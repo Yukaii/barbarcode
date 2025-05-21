@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
+  }
+}

@@ -3,10 +3,14 @@
     "./tsconfig.json"
   ],
   "files": [
-    "server.cts"
+    "server.cts",
+    "qr-tui.cts"
   ],
   "compilerOptions": {
     "outDir": "dist",
-    "noEmit": false
+    "noEmit": false,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "noImplicitAny": false
   }
 }

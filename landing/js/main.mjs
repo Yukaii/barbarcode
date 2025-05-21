@@ -75,10 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayQRCode() {
         try {
+            // In production, this would be the SDP answer from the WebRTC server
+            // For demo, we're using a placeholder
+            const webrtcSdpAnswer = `Server WebRTC configuration (scan with mobile)
+This would contain the full SDP answer with:
+- ICE credentials
+- DTLS fingerprint
+- Host candidate details`;
+
             // Generate ASCII string for the QR code
             // encodeQR(text, type, errorCorrectLevel, margin)
             // Type 'ascii' for ASCII output. 'M' is a common error correction level.
-            const asciiString = encodeQR(demoPublicUrl, 'ascii', 'M');
+            const asciiString = encodeQR(webrtcSdpAnswer, 'ascii', 'M');
             terminalText += `${asciiString}\n`;
             terminalOutput.textContent = terminalText;
             lineIndex++;
