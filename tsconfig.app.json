@@ -3,7 +3,8 @@
     "./tsconfig.json"
   ],
   "files": [
-    "server.cts"
+    "server.cts",
+    "qr-tui.tsx"
   ],
   "compilerOptions": {
     "outDir": "dist",
