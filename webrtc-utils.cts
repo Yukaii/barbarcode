@@ -48,6 +48,7 @@ export class WebRTCServer {
     this.icePwd = randomBase64(24);
     
     // Generate certificate
+    // @ts-ignore - Some versions of node-datachannel may not have createCertificate in type definitions
     this.certificate = nodeDataChannel.createCertificate({ days: 1 });
     this.fingerprint = this.certificate.fingerprint;
     
@@ -63,6 +64,7 @@ export class WebRTCServer {
       // Initialize the peer connection with ICE lite
       this.peerConnection = new nodeDataChannel.PeerConnection("srv", { 
         iceServers: [],
+        // @ts-ignore - iceLite may not be in type definitions but is supported in the library
         iceLite: true
       });
       
@@ -127,6 +129,10 @@ a=end-of-candidates`;
 
   public getIceCredentials(): { ufrag: string; pwd: string } {
     return { ufrag: this.iceUfrag, pwd: this.icePwd };
+  }
+
+  public getFingerprint(): string {
+    return this.fingerprint;
   }
 
   public sendMessage(message: any): void {

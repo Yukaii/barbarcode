@@ -11,6 +11,7 @@ import path from 'node:path';
 /* CJS fallback for __filename and __dirname */
 import ngrok from 'ngrok';
 import { WebRTCServer, getLocalIpAddress } from './webrtc-utils.cjs';
+import { QRCycleTUI } from './qr-tui.cjs';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 
@@ -74,26 +75,79 @@ const server = app.listen(port, '0.0.0.0', async () => {
     console.log(`- ICE ufrag: ${credentials.ufrag}`);
     console.log(`- Host: ${localIp}`);
     
-    // Generate QR code with the SDP answer
-    console.log('Scan this QR code with your mobile device:');
-    const qr = encodeQR(answerSdp, 'ascii');
-    console.log(qr);
+    // Create the complete connection information payload
+    const connectionInfo = {
+      type: 'webrtc',
+      sdp: answerSdp,
+      credentials: {
+        ufrag: credentials.ufrag,
+        pwd: credentials.pwd
+      },
+      fingerprint: webRTCServer.getFingerprint(),
+      host: localIp,
+      port: webRTCPort
+    };
     
-    // Also expose web page via ngrok for remote access
-    const publicUrl = await ngrok.connect({ proto: 'http', addr: port });
-    console.log(`Web server running on ${publicUrl}`);
-    console.log(`Active session: ${session}`);
+    console.log('Press Enter to start TUI QR code mode, or any other key to show QR code directly:');
+    
+    // Wait for user input before proceeding
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+    
+    process.stdin.once('data', (key) => {
+      process.stdin.setRawMode(false);
+      
+      if (key.toString() === '\r' || key.toString() === '\n') {
+        // Start TUI QR code cycle mode
+        console.log('Starting TUI QR code cycle mode...');
+        const qrTui = new QRCycleTUI();
+        qrTui.displayQRCodes(JSON.stringify(connectionInfo));
+      } else {
+        // Just show the QR code directly in the console
+        console.log('Scan this QR code with your mobile device:');
+        const qr = encodeQR(JSON.stringify(connectionInfo), 'ascii');
+        console.log(qr);
+      }
+      
+      // Proceed with starting the web server
+      startWebServer();
+    });
+    
+    // Function to start the web server (called after QR code display)
+    async function startWebServer() {
+      try {
+        // Also expose web page via ngrok for remote access
+        const publicUrl = await ngrok.connect({ proto: 'http', addr: port });
+        console.log(`Web server running on ${publicUrl}`);
+        console.log(`Active session: ${session}`);
+      } catch (error) {
+        console.error('Error setting up ngrok:', error);
+        console.log(`Web server running on http://${localIp}:${port}`);
+        console.log(`Active session: ${session}`);
+      }
+    }
   } else {
     // Legacy WebSocket Mode
     console.log('Starting in legacy WebSocket mode...');
     console.log('Scan this QR code to open the web page:');
-    const publicUrl = await ngrok.connect({ proto: 'http', addr: port });
-    const websocketUrl = publicUrl.replace(/^https?:/, 'ws:');
-    const qr = encodeQR(publicUrl, 'ascii');
-    console.log(qr);
-    console.log(`Server running on ${publicUrl}`);
-    console.log(`WebSocket server running on ${websocketUrl}`);
-    console.log(`Active session: ${session}`);
+    
+    try {
+      const publicUrl = await ngrok.connect({ proto: 'http', addr: port });
+      const websocketUrl = publicUrl.replace(/^https?:/, 'ws:');
+      const qr = encodeQR(publicUrl, 'ascii');
+      console.log(qr);
+      console.log(`Server running on ${publicUrl}`);
+      console.log(`WebSocket server running on ${websocketUrl}`);
+      console.log(`Active session: ${session}`);
+    } catch (error) {
+      console.error('Error setting up ngrok:', error);
+      const localUrl = `http://${localIp}:${port}`;
+      const qr = encodeQR(localUrl, 'ascii');
+      console.log(qr);
+      console.log(`Server running on ${localUrl}`);
+      console.log(`Active session: ${session}`);
+    }
     
     // Set up WebSocket server only in WebSocket mode
     const { WebSocketServer } = await import('ws');

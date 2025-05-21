@@ -16,6 +16,61 @@ declare global {
         
         // Connection mode
         connectionMode: 'webrtc' | 'websocket';
+
+        // QR code chunking
+        qrChunks: Array<{index: number, total: number, data: string}>;
+        qrChunksReceived: number;
+    }
+}
+
+// Initialize QR chunks storage
+window.qrChunks = [];
+window.qrChunksReceived = 0;
+
+/**
+ * Process a QR code chunk to reconstruct complete data
+ */
+function processQRChunk(chunkStr: string): string | null {
+    try {
+        const chunk = JSON.parse(chunkStr);
+        
+        if (typeof chunk.index !== 'number' || typeof chunk.total !== 'number' || typeof chunk.data !== 'string') {
+            // Not a valid chunk, may be a complete non-chunked QR
+            return chunkStr;
+        }
+        
+        debugLog(`Received QR chunk ${chunk.index + 1} of ${chunk.total}`);
+        
+        // Store chunk
+        window.qrChunks[chunk.index] = chunk;
+        window.qrChunksReceived++;
+        
+        // Check if we have all chunks
+        if (window.qrChunksReceived === chunk.total) {
+            // Reconstruct complete data
+            let completeData = '';
+            for (let i = 0; i < chunk.total; i++) {
+                if (!window.qrChunks[i]) {
+                    debugLog(`Missing QR chunk ${i + 1}, cannot reconstruct data yet`);
+                    return null;
+                }
+                completeData += window.qrChunks[i].data;
+            }
+            
+            debugLog(`Reconstructed complete data from ${chunk.total} QR chunks`);
+            
+            // Reset chunks for potential future scans
+            window.qrChunks = [];
+            window.qrChunksReceived = 0;
+            
+            return completeData;
+        }
+        
+        return null;
+    } catch (error) {
+        // If it fails to parse as JSON, it might be a non-chunked QR code
+        debugLog(`Not a chunked QR: ${error}`);
+        return chunkStr;
     }
 }
 
@@ -153,27 +208,61 @@ $(() => {
         if (App.lastResult !== code) {
             App.lastResult = code;
             
-            const message = JSON.stringify({code: code, format: format});
-            
-            // Send based on current connection mode
-            if (window.connectionMode === 'webrtc' && window.rtcConnected && window.dataChannel) {
-                window.dataChannel.send(message);
-                debugLog(`Sent to server via WebRTC: ${message}`);
-            } else if (window.connectionMode === 'websocket' && window.websocket?.readyState === WebSocket.OPEN) {
-                window.websocket.send(message);
-                debugLog(`Sent to server via WebSocket: ${message}`);
-            } else {
-                debugLog(`Connection not ready, could not send: ${code}`);
-                debugLog(`Current mode: ${window.connectionMode}, RTCConnected: ${window.rtcConnected}, WebSocket ready: ${window.websocket?.readyState === WebSocket.OPEN}`);
+            try {
+                // Check if this is a connection info QR code
+                const fullData = processQRChunk(code);
+                
+                if (fullData) {
+                    try {
+                        const parsedData = JSON.parse(fullData);
+                        
+                        if (parsedData.type === 'webrtc' && parsedData.sdp) {
+                            debugLog('WebRTC connection info detected in QR code');
+                            window.connectionMode = 'webrtc';
+                            initializeWebRTC(parsedData);
+                            return;
+                        }
+                    } catch (e) {
+                        // Not JSON or not connection info
+                    }
+                }
+                
+                // If not connection info, treat as normal barcode data
+                const message = JSON.stringify({code: code, format: format});
+                
+                // Send based on current connection mode
+                if (window.connectionMode === 'webrtc' && window.rtcConnected && window.dataChannel) {
+                    window.dataChannel.send(message);
+                    debugLog(`Sent to server via WebRTC: ${message}`);
+                } else if (window.connectionMode === 'websocket' && window.websocket?.readyState === WebSocket.OPEN) {
+                    window.websocket.send(message);
+                    debugLog(`Sent to server via WebSocket: ${message}`);
+                } else {
+                    debugLog(`Connection not ready, could not send: ${code}`);
+                    debugLog(`Current mode: ${window.connectionMode}, RTCConnected: ${window.rtcConnected}, WebSocket ready: ${window.websocket?.readyState === WebSocket.OPEN}`);
+                }
+            } catch (error) {
+                debugLog(`Error processing QR code: ${error}`);
             }
         }
     });
 });
 
 // WebRTC connection setup
-function initializeWebRTC() {
+function initializeWebRTC(connectionInfo: string | object) {
     try {
         debugLog('Initializing WebRTC connection...');
+        
+        // Parse connection info if it's a string
+        const info = typeof connectionInfo === 'string' 
+            ? JSON.parse(connectionInfo) 
+            : connectionInfo;
+        
+        // Extract SDP answer and other parameters
+        const { sdp: answerSdp, credentials } = info;
+        
+        // Store SDP for later use
+        window.sdpAnswer = answerSdp;
         
         // Create RTCPeerConnection
         window.rtcPeerConnection = new RTCPeerConnection({ 
@@ -198,17 +287,14 @@ function initializeWebRTC() {
             debugLog(`WebRTC data channel error: ${JSON.stringify(error)}`);
         };
         
-        // Parse ICE credentials from the answer SDP
-        const iceUfragMatch = window.sdpAnswer.match(/a=ice-ufrag:(.+)/);
-        const icePwdMatch = window.sdpAnswer.match(/a=ice-pwd:(.+)/);
+        // Parse ICE credentials from the connection info
+        const iceUfrag = credentials.ufrag;
+        const icePwd = credentials.pwd;
         
-        if (!iceUfragMatch || !icePwdMatch) {
-            debugLog('Could not find ICE credentials in SDP answer');
+        if (!iceUfrag || !icePwd) {
+            debugLog('Missing ICE credentials in connection info');
             return;
         }
-        
-        const iceUfrag = iceUfragMatch[1];
-        const icePwd = icePwdMatch[1];
         
         // Create offer
         window.rtcPeerConnection.createOffer()
@@ -277,8 +363,25 @@ $(document).ready(() => {
         // WebRTC mode explicitly requested via SDP parameter
         window.connectionMode = 'webrtc';
         try {
-            window.sdpAnswer = atob(sdpParam);
-            initializeWebRTC();
+            const decodedSdpParam = atob(sdpParam);
+            try {
+                // Try parsing as JSON first (new format)
+                const parsedConnectionInfo = JSON.parse(decodedSdpParam);
+                if (parsedConnectionInfo.sdp) {
+                    window.sdpAnswer = parsedConnectionInfo.sdp;
+                    initializeWebRTC(parsedConnectionInfo);
+                }
+            } catch (e) {
+                // Fallback to old format
+                window.sdpAnswer = decodedSdpParam;
+                initializeWebRTC({
+                    sdp: decodedSdpParam,
+                    credentials: {
+                        ufrag: decodedSdpParam.match(/a=ice-ufrag:(.+)/)?.[1] || '',
+                        pwd: decodedSdpParam.match(/a=ice-pwd:(.+)/)?.[1] || ''
+                    }
+                });
+            }
         } catch (error) {
             debugLog(`Error parsing SDP: ${error}`);
         }
@@ -290,9 +393,8 @@ $(document).ready(() => {
         // Try to auto-detect mode - look for SDP in URL path
         if (window.location.pathname.indexOf('/rtc/') === 0) {
             window.connectionMode = 'webrtc';
-            // Simple placeholder for demo
             debugLog('WebRTC mode detected from URL path');
-            debugLog('In a real implementation, the QR code would contain the SDP');
+            debugLog('QR code scanning for connection info is enabled');
         } else {
             // Default to WebSocket mode
             window.connectionMode = 'websocket';

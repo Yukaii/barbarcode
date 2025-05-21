@@ -42,6 +42,7 @@ Barbarcode supports two connection modes:
    - Works without internet connectivity
    - Requires only one QR code scan (no return-trip signaling)
    - Ideal for secure environments or unstable networks
+   - Supports TUI mode for chunked QR codes when connection data is too large
 
 2. **WebSocket Mode (Legacy)**: Uses traditional WebSockets
    - Requires internet connectivity for ngrok tunnel
@@ -55,6 +56,17 @@ barbarcode -p 8080 -s inventory_input --rtc
 # For WebSocket mode (legacy)
 barbarcode -p 8080 -s inventory_input --ws
 ```
+
+#### QR Code Cycling (TUI Mode)
+
+When using WebRTC mode, if the connection info is too large to fit in a single QR code, the server can display multiple QR codes in sequence using a Terminal User Interface (TUI):
+
+- Press Enter when prompted to start the TUI mode
+- The TUI will cycle through QR codes containing chunked connection data
+- The client will automatically reassemble the complete connection info from the chunks
+- You can use arrow keys to navigate through QR chunks manually
+- Press Space to toggle auto-cycling
+- Press Q to quit the TUI
 
 ## Server
 
