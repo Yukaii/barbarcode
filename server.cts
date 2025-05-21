@@ -11,7 +11,7 @@ import path from 'node:path';
 /* CJS fallback for __filename and __dirname */
 import ngrok from 'ngrok';
 import { WebRTCServer, getLocalIpAddress } from './webrtc-utils.cjs';
-import { QRCycleTUI } from './qr-tui.js';
+import { QRCycleTUI } from './qr-tui.cjs';
 
 const { keyTap, setKeyboardDelay, typeString } = robotjs;
 

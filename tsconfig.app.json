@@ -4,7 +4,7 @@
   ],
   "files": [
     "server.cts",
-    "qr-tui.tsx"
+    "qr-tui.cts"
   ],
   "compilerOptions": {
     "outDir": "dist",
