@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist",
-    "build:server": "tsc -p tsconfig.app.json",
+    "build:server": "tsc -p tsconfig.app.json --skipLibCheck",
     "build:landing": "vite build --config landing.vite.config.ts",
     "build": "vite build && pnpm run build:server",
     "start": "node dist/server.cjs",
