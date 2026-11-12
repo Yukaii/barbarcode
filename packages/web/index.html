@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d10" />
+    <meta name="robots" content="noindex" />
+    <title>Barbarcode Scanner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230b0d10'/><path d='M7 8v16M10 8v16M14 8v16M16 8v16M20 8v16M24 8v16M25 8v16' stroke='%23e8eaed' stroke-width='1.6'/></svg>" />
+  </head>
+  <body>
+    <main id="scanner" class="scanner" hidden>
+      <section class="viewport">
+        <video id="video" playsinline muted></video>
+        <div id="reticle" class="reticle" aria-hidden="true"></div>
+        <header class="topbar">
+          <span id="status-dot" class="dot" data-state="connecting"></span>
+          <span id="status-text" class="status-text">Connecting…</span>
+          <button id="torch" class="icon-button" type="button" hidden aria-pressed="false">Light</button>
+        </header>
+        <div id="camera-panel" class="camera-panel" hidden>
+          <p id="camera-message"></p>
+          <button id="camera-start" type="button" class="primary">Start camera</button>
+        </div>
+      </section>
+
+      <section class="sheet">
+        <div class="sheet-row">
+          <span class="label">Then type</span>
+          <div id="profiles" class="profiles" role="radiogroup" aria-label="Keystroke profile"></div>
+        </div>
+        <form id="manual" class="manual" autocomplete="off">
+          <input id="manual-input" type="text" inputmode="text" enterkeyhint="send"
+            placeholder="Or type a code by hand" aria-label="Barcode value" maxlength="2048" />
+          <button type="submit">Send</button>
+        </form>
+        <ol id="history" class="history" aria-live="polite"></ol>
+      </section>
+    </main>
+
+    <main id="intro" class="intro" hidden>
+      <h1>Barbarcode</h1>
+      <p>Your phone becomes a barcode scanner that types into your computer.</p>
+      <ol>
+        <li>On your computer, run <code>npx barbarcode</code></li>
+        <li>Scan the QR code it shows with this phone's camera.</li>
+      </ol>
+      <p class="muted">This page only works when opened from that QR code.</p>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
