@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Barbarcode：把手機變成條碼掃描器</title>
+    <meta name="description" content="用手機相機掃描條碼，內容會自動輸入到電腦，就像 USB 條碼掃描器。每次掃描後還能自動按 Tab、Enter 或任何快速鍵。免費開源。" />
+    <meta name="theme-color" content="#EEF0EC" />
+    <link rel="canonical" href="https://barbarcode.yukai.dev/zh-tw/" />
+    <link rel="alternate" hreflang="en" href="https://barbarcode.yukai.dev/" />
+    <link rel="alternate" hreflang="zh-TW" href="https://barbarcode.yukai.dev/zh-tw/" />
+    <link rel="alternate" hreflang="ja" href="https://barbarcode.yukai.dev/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://barbarcode.yukai.dev/" />
+    <meta property="og:title" content="Barbarcode：把手機變成條碼掃描器" />
+    <meta property="og:description" content="用手機掃條碼，自動輸入到電腦。執行 npx barbarcode 就能開始。" />
+    <meta property="og:image" content="https://barbarcode.yukai.dev/og.png" />
+    <meta property="og:url" content="https://barbarcode.yukai.dev/zh-tw/" />
+    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23FFD23F'/><path d='M8 8v16M11 8v16M15 8v16M17 8v16M21 8v16M24 8v16' stroke='black' stroke-width='1.8'/><path d='M5 16h22' stroke='%23FF2D20' stroke-width='1.6'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&amp;family=Big+Shoulders+Display:wght@700;900&amp;family=Martian+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;600;900&amp;display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/main-BCPxuPoY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-CW8z7IcN.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/zh-tw/">barbarcode</a>
+      <div class="header-links">
+        <nav aria-label="語言" class="lang-nav"><a href="/" lang="en" hreflang="en">English</a><a href="/zh-tw/" lang="zh-TW" aria-current="page">繁體中文</a><a href="/ja/" lang="ja" hreflang="ja">日本語</a></nav>
+        <nav aria-label="專案連結">
+          <a href="https://github.com/Yukaii/barbarcode">GitHub</a>
+          <a href="https://www.npmjs.com/package/barbarcode">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1><span>用手機掃條碼，</span> <span>自動輸入到電腦。</span></h1>
+          <p class="lede">把手機相機對準條碼，內容就會輸入到電腦上目前開著的視窗，就像 USB 條碼掃描器一樣。每次掃描後還能自動按 Tab、Enter 或任何快速鍵。</p>
+          <div class="command">
+            <code id="command-text">npx barbarcode</code>
+            <button type="button" id="copy" class="copy">複製</button>
+          </div>
+          <p class="fineprint">電腦需要 Node.js 22 以上版本。手機不用裝 App，也不用註冊帳號。</p>
+        </div>
+
+        <figure class="stage" aria-label="動畫示範：掃描條碼後，內容自動輸入到試算表">
+          <div class="tag" id="tag">
+            <div class="tag-head">
+              <span class="tag-name" id="tag-name"></span>
+              <span class="tag-price" id="tag-price"></span>
+            </div>
+            <div class="tag-barcode" id="tag-barcode"></div>
+            <div class="laser" id="laser" aria-hidden="true"></div>
+          </div>
+
+          <div class="sheet">
+            <div class="sheet-title">盤點表</div>
+            <table>
+              <thead>
+                <tr><th scope="col">商品編號</th><th scope="col">數量</th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <figcaption class="keystrip">
+            <span class="keystrip-label">每次掃描輸入</span>
+            <kbd class="key key-text" data-key="text" id="key-code">4006381333931</kbd>
+            <kbd class="key" data-key="tab">Tab</kbd>
+            <kbd class="key" data-key="one">1</kbd>
+            <kbd class="key" data-key="enter">Enter</kbd>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">使用方式</h2>
+        <ol>
+          <li>
+            <h3>在電腦上執行</h3>
+            <p>在終端機執行 <code>npx barbarcode</code>，畫面上會出現 QR Code。</p>
+          </li>
+          <li>
+            <h3>用手機掃描 QR Code</h3>
+            <p>掃描器會在手機瀏覽器中開啟，不需要安裝 App。</p>
+          </li>
+          <li>
+            <h3>對準條碼</h3>
+            <p>每個條碼都會輸入到游標所在的位置：試算表、表單、POS 收銀畫面都可以。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="profiles" aria-labelledby="profiles-title">
+        <div class="section-intro">
+          <h2 id="profiles-title">自訂每次掃描後的按鍵</h2>
+          <p>把按鍵設定檔存在 <code>barbarcode.toml</code>（執行 <code>npx barbarcode init</code> 可以產生範例），再用 <code>npx barbarcode -s price_check</code> 啟動。掃描時也能直接在手機上切換設定檔。</p>
+        </div>
+        <table class="profile-table">
+          <thead>
+            <tr><th scope="col">設定檔</th><th scope="col">格式</th><th scope="col">實際輸入</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">inventory</th>
+              <td><code>{barcode}{enter}</code></td>
+              <td><kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">price_check</th>
+              <td><code>{f4}{barcode}{enter}</code></td>
+              <td><kbd class="key">F4</kbd> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">data_entry</th>
+              <td><code>SKU:{barcode}{tab}Quantity:</code></td>
+              <td><kbd class="key key-text">SKU:4006381333931</kbd> <kbd class="key">Tab</kbd> <kbd class="key key-text">Quantity:</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">search</th>
+              <td><code>{cmd+k}{delay:150}{barcode}{enter}</code></td>
+              <td><kbd class="key">⌘ K</kbd> <span class="wait">等待 150 毫秒</span> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">另外也支援 <code>{tab}</code>、<code>{esc}</code>、方向鍵、<code>{f1}</code> 到 <code>{f24}</code>，以及 <code>{ctrl+s}</code> 這類快速鍵。條碼內容一律以純文字輸入，所以條碼本身絕對不會觸發快速鍵。</p>
+      </section>
+
+      <section class="connect" aria-labelledby="connect-title">
+        <div class="section-intro">
+          <h2 id="connect-title">任何網路都能用</h2>
+          <p>手機瀏覽器只允許在安全（HTTPS）的網頁使用相機，所以 barbarcode 會提供一個安全網址，讓手機連到你的電腦。預設方式在任何網路都能用；其他方式則讓連線只經過你自己選擇的服務。</p>
+        </div>
+        <table class="mode-table">
+          <thead>
+            <tr><th scope="col">指令</th><th scope="col">連線方式</th><th scope="col">需要準備</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><code>npx barbarcode</code></th>
+              <td>透過 barbarcode 中繼伺服器，任何網路都能連</td>
+              <td>不需要</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via cloudflare</code></th>
+              <td>由你自己執行的臨時 Cloudflare 通道</td>
+              <td><code>cloudflared</code>，不需要帳號</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via tailscale</code></th>
+              <td>透過你的 tailnet，只有你自己的裝置能連線</td>
+              <td>已開啟 HTTPS 的 Tailscale</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">掃描內容全程端對端加密。金鑰只存在 QR Code 裡，所以中繼伺服器和通道都無法讀取你的掃描內容，也無法在你的電腦上輸入任何東西。</p>
+      </section>
+
+      <section class="platforms" aria-labelledby="platforms-title">
+        <h2 id="platforms-title">支援 macOS、Windows 和 Linux</h2>
+        <dl>
+          <div>
+            <dt>macOS</dt>
+            <dd>第一次使用時，到「系統設定」的「隱私權與安全性」&gt;「輔助使用」允許你的終端機 App。</dd>
+          </div>
+          <div>
+            <dt>Windows</dt>
+            <dd>不需要額外設定。</dd>
+          </div>
+          <div>
+            <dt>Linux</dt>
+            <dd>請安裝 <code>xdotool</code>（X11）或 <code>wtype</code>（Wayland）。</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Barbarcode 是採用 MIT 授權的免費開源軟體，原始碼公開在 <a href="https://github.com/Yukaii/barbarcode">GitHub</a>。</p>
+    </footer>
+
+    <script type="application/json" id="page-data">{"items":[{"name":"HB 鉛筆","currency":"NT$","price":"15","code":"400638133393"},{"name":"A5 點陣筆記本","currency":"NT$","price":"180","code":"590123412345"},{"name":"《設計模式》","currency":"NT$","price":"1,580","code":"978020163361"}],"copied":"已複製","copyFailed":"請手動選取複製"}</script>
+  </body>
+</html>

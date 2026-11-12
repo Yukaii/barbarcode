@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Barbarcode：スマホをバーコードリーダーに</title>
+    <meta name="description" content="スマホのカメラでバーコードを読み取り、パソコンに自動入力。USB バーコードリーダーと同じように使えます。スキャンのたびに Tab や Enter、好きなショートカットも送れます。無料のオープンソースです。" />
+    <meta name="theme-color" content="#EEF0EC" />
+    <link rel="canonical" href="https://barbarcode.yukai.dev/ja/" />
+    <link rel="alternate" hreflang="en" href="https://barbarcode.yukai.dev/" />
+    <link rel="alternate" hreflang="zh-TW" href="https://barbarcode.yukai.dev/zh-tw/" />
+    <link rel="alternate" hreflang="ja" href="https://barbarcode.yukai.dev/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://barbarcode.yukai.dev/" />
+    <meta property="og:title" content="Barbarcode：スマホをバーコードリーダーに" />
+    <meta property="og:description" content="スマホでスキャンして、パソコンに自動入力。npx barbarcode ですぐに始められます。" />
+    <meta property="og:image" content="https://barbarcode.yukai.dev/og.png" />
+    <meta property="og:url" content="https://barbarcode.yukai.dev/ja/" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23FFD23F'/><path d='M8 8v16M11 8v16M15 8v16M17 8v16M21 8v16M24 8v16' stroke='black' stroke-width='1.8'/><path d='M5 16h22' stroke='%23FF2D20' stroke-width='1.6'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&amp;family=Big+Shoulders+Display:wght@700;900&amp;family=Martian+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;600;900&amp;display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/main-BCPxuPoY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-CW8z7IcN.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/ja/">barbarcode</a>
+      <div class="header-links">
+        <nav aria-label="言語" class="lang-nav"><a href="/" lang="en" hreflang="en">English</a><a href="/zh-tw/" lang="zh-TW" hreflang="zh-TW">繁體中文</a><a href="/ja/" lang="ja" aria-current="page">日本語</a></nav>
+        <nav aria-label="プロジェクトのリンク">
+          <a href="https://github.com/Yukaii/barbarcode">GitHub</a>
+          <a href="https://www.npmjs.com/package/barbarcode">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1><span>スマホでスキャン。</span> <span>パソコンに自動入力。</span></h1>
+          <p class="lede">スマホのカメラをバーコードに向けるだけで、パソコンで開いているアプリにそのまま入力されます。USB バーコードリーダーと同じ感覚です。スキャンのたびに Tab や Enter、好きなショートカットも送れます。</p>
+          <div class="command">
+            <code id="command-text">npx barbarcode</code>
+            <button type="button" id="copy" class="copy">コピー</button>
+          </div>
+          <p class="fineprint">パソコンに Node.js 22 以上が必要です。スマホにアプリは不要、アカウント登録もいりません。</p>
+        </div>
+
+        <figure class="stage" aria-label="アニメーション例：バーコードを読み取り、スプレッドシートに入力する様子">
+          <div class="tag" id="tag">
+            <div class="tag-head">
+              <span class="tag-name" id="tag-name"></span>
+              <span class="tag-price" id="tag-price"></span>
+            </div>
+            <div class="tag-barcode" id="tag-barcode"></div>
+            <div class="laser" id="laser" aria-hidden="true"></div>
+          </div>
+
+          <div class="sheet">
+            <div class="sheet-title">棚卸し表</div>
+            <table>
+              <thead>
+                <tr><th scope="col">商品コード</th><th scope="col">数量</th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <figcaption class="keystrip">
+            <span class="keystrip-label">スキャンごとに入力</span>
+            <kbd class="key key-text" data-key="text" id="key-code">4006381333931</kbd>
+            <kbd class="key" data-key="tab">Tab</kbd>
+            <kbd class="key" data-key="one">1</kbd>
+            <kbd class="key" data-key="enter">Enter</kbd>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">使い方</h2>
+        <ol>
+          <li>
+            <h3>パソコンで起動する</h3>
+            <p>ターミナルで <code>npx barbarcode</code> を実行すると、QR コードが表示されます。</p>
+          </li>
+          <li>
+            <h3>スマホで QR コードを読み取る</h3>
+            <p>スマホのブラウザでスキャナーが開きます。アプリのインストールは不要です。</p>
+          </li>
+          <li>
+            <h3>バーコードに向ける</h3>
+            <p>読み取ったコードはカーソルの位置に入力されます。スプレッドシート、フォーム、POS レジ画面など、どこでも使えます。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="profiles" aria-labelledby="profiles-title">
+        <div class="section-intro">
+          <h2 id="profiles-title">スキャン後のキー操作を自由に設定</h2>
+          <p>キー操作のプロファイルを <code>barbarcode.toml</code> に保存し（<code>npx barbarcode init</code> でサンプルを作成できます）、<code>npx barbarcode -s price_check</code> で起動します。スキャン中にスマホからプロファイルを切り替えることもできます。</p>
+        </div>
+        <table class="profile-table">
+          <thead>
+            <tr><th scope="col">プロファイル</th><th scope="col">パターン</th><th scope="col">入力内容</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">inventory</th>
+              <td><code>{barcode}{enter}</code></td>
+              <td><kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">price_check</th>
+              <td><code>{f4}{barcode}{enter}</code></td>
+              <td><kbd class="key">F4</kbd> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">data_entry</th>
+              <td><code>SKU:{barcode}{tab}Quantity:</code></td>
+              <td><kbd class="key key-text">SKU:4006381333931</kbd> <kbd class="key">Tab</kbd> <kbd class="key key-text">Quantity:</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">search</th>
+              <td><code>{cmd+k}{delay:150}{barcode}{enter}</code></td>
+              <td><kbd class="key">⌘ K</kbd> <span class="wait">150 ミリ秒待つ</span> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">ほかにも <code>{tab}</code>、<code>{esc}</code>、矢印キー、<code>{f1}</code>〜<code>{f24}</code>、<code>{ctrl+s}</code> のようなショートカットに対応しています。バーコードの内容は常にテキストとして入力されるので、バーコードがショートカットを実行することはありません。</p>
+      </section>
+
+      <section class="connect" aria-labelledby="connect-title">
+        <div class="section-intro">
+          <h2 id="connect-title">どんなネットワークでも使える</h2>
+          <p>スマホのブラウザは安全な（HTTPS）ページでしかカメラを使えません。そこで barbarcode は、スマホからパソコンにつながる安全なアドレスを用意します。標準の方法はどこでも使え、ほかの方法では通信経路を自分で選べます。</p>
+        </div>
+        <table class="mode-table">
+          <thead>
+            <tr><th scope="col">コマンド</th><th scope="col">接続方法</th><th scope="col">必要なもの</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><code>npx barbarcode</code></th>
+              <td>barbarcode の中継サーバー経由。どのネットワークからでも接続できます</td>
+              <td>なし</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via cloudflare</code></th>
+              <td>自分で起動する一時的な Cloudflare トンネル</td>
+              <td><code>cloudflared</code>（アカウント不要）</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via tailscale</code></th>
+              <td>自分の tailnet 経由。自分の端末だけが接続できます</td>
+              <td>HTTPS を有効にした Tailscale</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">スキャン内容はエンドツーエンドで暗号化されます。鍵は QR コードの中にしかないため、中継サーバーやトンネルがスキャン内容を読んだり、パソコンに入力したりすることはできません。</p>
+      </section>
+
+      <section class="platforms" aria-labelledby="platforms-title">
+        <h2 id="platforms-title">macOS、Windows、Linux に対応</h2>
+        <dl>
+          <div>
+            <dt>macOS</dt>
+            <dd>初回のみ、「システム設定」の「プライバシーとセキュリティ」&gt;「アクセシビリティ」でターミナルアプリを許可してください。</dd>
+          </div>
+          <div>
+            <dt>Windows</dt>
+            <dd>追加の設定は不要です。</dd>
+          </div>
+          <div>
+            <dt>Linux</dt>
+            <dd><code>xdotool</code>（X11）または <code>wtype</code>（Wayland）をインストールしてください。</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Barbarcode は MIT ライセンスの無料オープンソースソフトウェアです。ソースコードは <a href="https://github.com/Yukaii/barbarcode">GitHub</a> で公開しています。</p>
+    </footer>
+
+    <script type="application/json" id="page-data">{"items":[{"name":"鉛筆 HB","currency":"¥","price":"110","code":"400638133393"},{"name":"ドット方眼ノート A5","currency":"¥","price":"880","code":"590123412345"},{"name":"デザインパターン（書籍）","currency":"¥","price":"5,830","code":"978020163361"}],"copied":"コピーしました","copyFailed":"選択してコピーしてください"}</script>
+  </body>
+</html>

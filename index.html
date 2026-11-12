@@ -1,99 +1,190 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barbarcode - Scan with Ease</title>
-    <meta name="description" content="Barbarcode turns your phone into a barcode scanner for your computer. Fast, open-source, and easy to use.">
-    <meta name="keywords" content="barcode, scanner, open-source, inventory, QR code, mobile, automation, barbarcode">
-    <meta name="author" content="Yukaii">
-    <meta property="og:title" content="Barbarcode - Scan with Ease">
-    <meta property="og:description" content="Turn your phone into a barcode scanner for your computer, instantly. Open-source and easy to use.">
-    <meta property="og:image" content="https://github.com/Yukaii/barbarcode/raw/main/landing/images/ui.jpeg">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://github.com/Yukaii/barbarcode">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Barbarcode - Scan with Ease">
-    <meta name="twitter:description" content="Turn your phone into a barcode scanner for your computer, instantly. Open-source and easy to use.">
-    <meta name="twitter:image" content="https://github.com/Yukaii/barbarcode/raw/main/landing/images/ui.jpeg">
-  <script type="module" crossorigin src="/assets/index-B-QtDsQQ.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-D4_8kDkK.css">
-</head>
-<body class="bg-[#1e1e1e] text-[#d4d4d4] font-mono leading-relaxed m-0 p-5">
-    <div class="max-w-[900px] mx-auto overflow-hidden">
-        <header>
-            <h1 class="text-[#4ec9b0] text-2xl mb-2 whitespace-nowrap">barbarcode> <span class="cursor"></span></h1>
-        </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Barbarcode: use your phone as a barcode scanner</title>
+    <meta name="description" content="Scan barcodes with your phone's camera and have them typed into your computer, like a USB scanner. Add Tab, Enter or any shortcut after each scan. Free and open source." />
+    <meta name="theme-color" content="#EEF0EC" />
+    <link rel="canonical" href="https://barbarcode.yukai.dev/" />
+    <link rel="alternate" hreflang="en" href="https://barbarcode.yukai.dev/" />
+    <link rel="alternate" hreflang="zh-TW" href="https://barbarcode.yukai.dev/zh-tw/" />
+    <link rel="alternate" hreflang="ja" href="https://barbarcode.yukai.dev/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://barbarcode.yukai.dev/" />
+    <meta property="og:title" content="Barbarcode: use your phone as a barcode scanner" />
+    <meta property="og:description" content="Scan with your phone. It types into your computer. Run npx barbarcode to start." />
+    <meta property="og:image" content="https://barbarcode.yukai.dev/og.png" />
+    <meta property="og:url" content="https://barbarcode.yukai.dev/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23FFD23F'/><path d='M8 8v16M11 8v16M15 8v16M17 8v16M21 8v16M24 8v16' stroke='black' stroke-width='1.8'/><path d='M5 16h22' stroke='%23FF2D20' stroke-width='1.6'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&amp;family=Big+Shoulders+Display:wght@700;900&amp;family=Martian+Mono:wght@400;500&amp;display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/main-BCPxuPoY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-CW8z7IcN.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/">barbarcode</a>
+      <div class="header-links">
+        <nav aria-label="Language" class="lang-nav"><a href="/" lang="en" aria-current="page">English</a><a href="/zh-tw/" lang="zh-TW" hreflang="zh-TW">繁體中文</a><a href="/ja/" lang="ja" hreflang="ja">日本語</a></nav>
+        <nav aria-label="Project links">
+          <a href="https://github.com/Yukaii/barbarcode">GitHub</a>
+          <a href="https://www.npmjs.com/package/barbarcode">npm</a>
+        </nav>
+      </div>
+    </header>
 
-        <section id="intro" class="text-center py-12 mb-8">
-            <h1 class="text-5xl md:text-6xl font-bold text-[#4ec9b0] mb-8 tracking-tight">Barbarcode</h1>
-            <p class="text-xl md:text-2xl text-[#d4d4d4] max-w-2xl mx-auto">Turn your phone into a barcode scanner for your computer, instantly.</p>
-        </section>
-
-<section id="server-startup" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
-    <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Server Startup</h2>
-    <div class="terminal-window max-w-[650px] mx-auto my-6 rounded-lg shadow-lg border border-[#222] bg-[#1e1e1e]">
-        <div class="terminal-chrome flex items-center px-4 py-2 rounded-t-lg bg-[#23272e] border-b border-[#222]">
-            <span class="w-3 h-3 rounded-full bg-[#ff5f56] mr-2 border border-[#e0443e]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#ffbd2e] mr-2 border border-[#dea123]"></span>
-            <span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#13a10e]"></span>
-            <span class="ml-4 text-xs text-[#888] select-none">barbarcode — bash</span>
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1><span>Scan with your phone.</span> <span>Type on your computer.</span></h1>
+          <p class="lede">Point your phone's camera at a barcode and it's typed into whatever is open on your computer, just like a USB scanner. Add Tab, Enter or any shortcut after each scan.</p>
+          <div class="command">
+            <code id="command-text">npx barbarcode</code>
+            <button type="button" id="copy" class="copy">Copy</button>
+          </div>
+          <p class="fineprint">Needs Node.js 22 or newer. No app on the phone, no account.</p>
         </div>
-        <div class="terminal-body p-4 min-h-[150px] text-sm overflow-y-auto font-mono">
-            <pre id="terminal-output" class="whitespace-pre-wrap m-0"></pre>
+
+        <figure class="stage" aria-label="Animated example: a barcode is scanned and typed into a spreadsheet">
+          <div class="tag" id="tag">
+            <div class="tag-head">
+              <span class="tag-name" id="tag-name"></span>
+              <span class="tag-price" id="tag-price"></span>
+            </div>
+            <div class="tag-barcode" id="tag-barcode"></div>
+            <div class="laser" id="laser" aria-hidden="true"></div>
+          </div>
+
+          <div class="sheet">
+            <div class="sheet-title">Stock count</div>
+            <table>
+              <thead>
+                <tr><th scope="col">SKU</th><th scope="col">Qty</th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <figcaption class="keystrip">
+            <span class="keystrip-label">Each scan types</span>
+            <kbd class="key key-text" data-key="text" id="key-code">4006381333931</kbd>
+            <kbd class="key" data-key="tab">Tab</kbd>
+            <kbd class="key" data-key="one">1</kbd>
+            <kbd class="key" data-key="enter">Enter</kbd>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">How it works</h2>
+        <ol>
+          <li>
+            <h3>Run it on your computer</h3>
+            <p>Run <code>npx barbarcode</code> in a terminal. A QR code appears.</p>
+          </li>
+          <li>
+            <h3>Scan the QR code with your phone</h3>
+            <p>The scanner opens in your phone's browser. No app to install.</p>
+          </li>
+          <li>
+            <h3>Point it at barcodes</h3>
+            <p>Each code is typed wherever your cursor is: a spreadsheet, a form, a point-of-sale screen.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="profiles" aria-labelledby="profiles-title">
+        <div class="section-intro">
+          <h2 id="profiles-title">Choose what happens after each scan</h2>
+          <p>Save keystroke profiles in <code>barbarcode.toml</code> (run <code>npx barbarcode init</code> for an example), then start with <code>npx barbarcode -s price_check</code>. You can switch profiles from the phone while you scan.</p>
         </div>
-    </div>
-</section>
+        <table class="profile-table">
+          <thead>
+            <tr><th scope="col">Profile</th><th scope="col">Pattern</th><th scope="col">Types</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">inventory</th>
+              <td><code>{barcode}{enter}</code></td>
+              <td><kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">price_check</th>
+              <td><code>{f4}{barcode}{enter}</code></td>
+              <td><kbd class="key">F4</kbd> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">data_entry</th>
+              <td><code>SKU:{barcode}{tab}Quantity:</code></td>
+              <td><kbd class="key key-text">SKU:4006381333931</kbd> <kbd class="key">Tab</kbd> <kbd class="key key-text">Quantity:</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">search</th>
+              <td><code>{cmd+k}{delay:150}{barcode}{enter}</code></td>
+              <td><kbd class="key">⌘ K</kbd> <span class="wait">wait 150 ms</span> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">Also: <code>{tab}</code>, <code>{esc}</code>, arrow keys, <code>{f1}</code> to <code>{f24}</code>, and any shortcut like <code>{ctrl+s}</code>. The barcode itself is always typed as plain text, so a barcode can never trigger a shortcut.</p>
+      </section>
 
-        <section id="installation" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
-            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Installation</h2>
-            <div>
-                <p class="mb-4">Get started with Barbarcode quickly. You can install it globally using npm or run it directly with npx.</p>
-                <h3 class="mb-3">Install Globally:</h3>
-                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npm install -g barbarcode</code></pre>
-                <p class="mb-4">Then, you can run <code>barbarcode</code> from anywhere in your terminal.</p>
-                
-                <h3 class="mb-3">Or use npx (no installation needed):</h3>
-                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npx barbarcode -s inventory</code></pre>
-                <p class="mb-4">This is great for trying it out or for occasional use.</p>
-                <p class="mb-4 text-xs text-[#888]">The npm package is automatically built and published using GitHub Actions for every release.</p>
-            </div>
-        </section>
+      <section class="connect" aria-labelledby="connect-title">
+        <div class="section-intro">
+          <h2 id="connect-title">Works on any network</h2>
+          <p>Phone browsers only allow the camera on secure (HTTPS) pages, so barbarcode gives your phone a secure address to reach your computer. The default works anywhere; the others keep everything on infrastructure you choose.</p>
+        </div>
+        <table class="mode-table">
+          <thead>
+            <tr><th scope="col">Command</th><th scope="col">How it connects</th><th scope="col">You'll need</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><code>npx barbarcode</code></th>
+              <td>Through the barbarcode relay, from any network</td>
+              <td>Nothing</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via cloudflare</code></th>
+              <td>A temporary Cloudflare tunnel that you run</td>
+              <td><code>cloudflared</code>, no account</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via tailscale</code></th>
+              <td>Your tailnet, so only your own devices can connect</td>
+              <td>Tailscale with HTTPS turned on</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">Scans are end-to-end encrypted. The key exists only in the QR code, so neither the relay nor a tunnel can read your scans or type on your computer.</p>
+      </section>
 
-        <section id="configuration" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
-            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Flexible Configuration</h2>
-            <div>
-                <p class="mb-4">Easily define keystroke mappings in a simple <code>barbarcode.toml</code> file (<code>npx barbarcode init</code>). Tailor Barbarcode to your exact workflow.</p>
-                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-toml font-mono block">
-[sessions]
-# Press Enter after the barcode
-inventory_input = "{barcode}{enter}"
+      <section class="platforms" aria-labelledby="platforms-title">
+        <h2 id="platforms-title">Types on macOS, Windows and Linux</h2>
+        <dl>
+          <div>
+            <dt>macOS</dt>
+            <dd>Allow your terminal app once in System Settings, under Privacy &amp; Security, Accessibility.</dd>
+          </div>
+          <div>
+            <dt>Windows</dt>
+            <dd>Works out of the box.</dd>
+          </div>
+          <div>
+            <dt>Linux</dt>
+            <dd>Install <code>xdotool</code> (X11) or <code>wtype</code> (Wayland).</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
 
-# Press F4, then type barcode, then Enter
-price_check = "{key:F4}{barcode}{enter}"
+    <footer class="site-footer">
+      <p>Barbarcode is free and open source under the MIT license. Read the code on <a href="https://github.com/Yukaii/barbarcode">GitHub</a>.</p>
+    </footer>
 
-# Type SKU:, the barcode, Tab, then Quantity:
-data_entry = "SKU:{barcode}{tab}Quantity:"
-
-# Wait 500ms, press F5, type barcode, Tab, 1, Enter
-complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
-                </code></pre>
-                <p class="mb-4">Supports special keys, delays, and custom text for ultimate control.</p>
-            </div>
-        </section>
-
-        <section id="mobile-scan" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
-            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Scan with Your Mobile</h2>
-            <div class="text-center">
-                <p class="mb-4">Scan the QR code displayed by the server with your mobile device. No app installation needed!</p>
-                <img src="/assets/ui-D5ZseeSR.jpeg" alt="Mobile scanning QR code" class="max-w-[250px] mx-auto my-2 border-4 border-[#444] rounded-lg" id="mobile-scan-img">
-                <p class="mb-4">Your phone becomes a powerful barcode scanner, seamlessly sending data to your computer.</p>
-            </div>
-        </section>
-
-        <footer class="text-center mt-10 pt-5 border-t border-[#333] text-sm">
-            <p>Barbarcode is open-source (MIT License). Check it out on <a href="https://github.com/Yukaii/barbarcode" target="_blank" class="text-[#569cd6] hover:underline">GitHub</a>.</p>
-        </footer>
-    </div>
-</body>
+    <script type="application/json" id="page-data">{"items":[{"name":"Graphite pencil, HB","currency":"$","price":"1.20","code":"400638133393"},{"name":"Dotted notebook, A5","currency":"$","price":"6.50","code":"590123412345"},{"name":"Design Patterns (book)","currency":"$","price":"54.99","code":"978020163361"}],"copied":"Copied","copyFailed":"Select and copy"}</script>
+  </body>
 </html>
