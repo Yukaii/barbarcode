@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "barbarcode-relay",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  // The phone scanner page (packages/web) is served as static assets by the same Worker.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/ws/*", "/health"]
+  },
+  // One Durable Object per pairing session. SQLite-backed classes are available on the free plan;
+  // no storage is actually written, sessions live only as long as their WebSockets.
+  "durable_objects": {
+    "bindings": [{ "name": "ROOM", "class_name": "Room" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  "observability": { "enabled": true }
+  // To serve from your own domain (zone must be on Cloudflare), uncomment:
+  // "routes": [{ "pattern": "scan.barbarcode.yukai.dev", "custom_domain": true }]
+}
