@@ -52,7 +52,7 @@
                 <p class="mb-4">Then, you can run <code>barbarcode</code> from anywhere in your terminal.</p>
                 
                 <h3 class="mb-3">Or use npx (no installation needed):</h3>
-                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npx barbarcode -p 8080 -s inventory_input</code></pre>
+                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npx barbarcode -s inventory</code></pre>
                 <p class="mb-4">This is great for trying it out or for occasional use.</p>
                 <p class="mb-4 text-xs text-[#888]">The npm package is automatically built and published using GitHub Actions for every release.</p>
             </div>
@@ -61,7 +61,7 @@
         <section id="configuration" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
             <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Flexible Configuration</h2>
             <div>
-                <p class="mb-4">Easily define keystroke mappings in a simple <code>config.toml</code> file. Tailor Barbarcode to your exact workflow.</p>
+                <p class="mb-4">Easily define keystroke mappings in a simple <code>barbarcode.toml</code> file (<code>npx barbarcode init</code>). Tailor Barbarcode to your exact workflow.</p>
                 <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-toml font-mono block">
 [sessions]
 # Press Enter after the barcode

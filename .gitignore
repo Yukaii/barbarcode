@@ -173,3 +173,11 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# barbarcode
+.wrangler/
+.dev.vars
+
+# copied in by `prepack`
+packages/cli/README.md
+packages/cli/LICENSE

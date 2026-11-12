@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerText = 'barbarcode>';
     const headerElement = document.querySelector('header h1');
 
-    const demoPublicUrl = 'https://shiny-random-name.ngrok-free.app'; // Example ngrok free URL
+    const demoPublicUrl = 'https://scan.barbarcode.yukai.dev/s/demo'; // Example pairing URL
 
     // Clear initial header text for typing animation
     if (headerElement) {
@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const lines = [
-        { text: '> barbarcode -p 8080 -s inventory_input', speed: 25 }, // Reduced from 50
-        { text: 'Server starting on port 8080...', speed: 15 },        // Reduced from 30
-        { text: 'Session type: inventory_input', speed: 15 },        // Reduced from 30
-        { text: 'Generating QR code for client connection...', speed: 15 }, // Reduced from 30
-        { text: `Ngrok tunnel established at: ${demoPublicUrl}`, speed: 20, isNgrokUrl: true }, // Reduced from 40
-        { text: 'Scan the QR code below with your mobile device:', speed: 15, isQRCodePrompt: true } // Reduced from 30
+        { text: '> npx barbarcode -s inventory', speed: 25 },
+        { text: 'via      relay · end-to-end encrypted', speed: 15 },
+        { text: 'profile  inventory  {barcode}{enter}', speed: 15 },
+        { text: 'typing   macOS (osascript)', speed: 15 },
+        { text: `Open: ${demoPublicUrl}`, speed: 20, isNgrokUrl: true },
+        { text: "Scan this QR code with your phone's camera:", speed: 15, isQRCodePrompt: true }
     ];
 
     let lineIndex = 0;
