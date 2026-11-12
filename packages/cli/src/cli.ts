@@ -7,7 +7,7 @@ import { type Config, ConfigError, loadConfig, writeConfigTemplate } from "./con
 import { HostSession } from "./host";
 import { createDriver, DRIVER_NAMES, type DriverName, KeyDriverError } from "./keys/drivers";
 import { describe } from "./keys/pattern";
-import { resolveWebRoot, startLocalServer } from "./transports/local-server";
+import { startLocalServer } from "./transports/local-server";
 import { connectRelay, DEFAULT_RELAY_URL } from "./transports/relay";
 import {
   lanAddress,
@@ -17,6 +17,7 @@ import {
 } from "./transports/tunnels";
 import type { Transport, TransportHandlers } from "./transports/types";
 import { bold, cyan, dim, fail, green, log, printPairing, red, yellow } from "./ui";
+import { loadWebAssets } from "./web-assets";
 
 const VIAS = ["relay", "cloudflare", "tailscale", "lan"] as const;
 type Via = (typeof VIAS)[number];
@@ -154,7 +155,7 @@ async function main() {
       sessionId: pairing.sessionId,
       host: via === "lan" ? "0.0.0.0" : "127.0.0.1",
       port,
-      webRoot: resolveWebRoot(),
+      assets: loadWebAssets(),
       on: handlers,
     });
     const base = { send: local.send };

@@ -1,5 +1,4 @@
 import { type ChildProcess, spawn } from "node:child_process";
-import { Resolver } from "node:dns/promises";
 import { get } from "node:https";
 import type { LookupFunction } from "node:net";
 import os from "node:os";
@@ -18,22 +17,33 @@ export class TunnelError extends Error {}
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Resolves through Cloudflare's public DNS instead of the OS resolver. A brand-new quick-tunnel
- * hostname takes a few seconds to appear in DNS, and asking the OS too early makes it cache
- * "no such host" for minutes, which would also break the URL for the user on this machine.
+ * Resolves a hostname with Cloudflare's DNS-over-HTTPS API instead of the OS resolver.
+ *
+ * A brand-new quick-tunnel hostname takes a few seconds to appear in DNS. Asking the OS too early
+ * makes it cache "no such host" for minutes (which would also break the URL for the user on this
+ * machine), and Bun's resolver caches answers too. A plain HTTPS query is never cached, and behaves
+ * the same on Node and Bun.
  */
-const publicDns = new Resolver();
-publicDns.setServers(["1.1.1.1", "1.0.0.1"]);
-const publicLookup: LookupFunction = (hostname, options, callback) => {
-  publicDns.resolve4(hostname).then(
-    (addresses) => {
-      const address = addresses[0] as string;
-      if (options.all) callback(null, [{ address, family: 4 }]);
-      else callback(null, address, 4);
-    },
-    (error: NodeJS.ErrnoException) => callback(error, "", 4),
-  );
-};
+async function resolveWithDoh(hostname: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A`,
+      { headers: { accept: "application/dns-json" }, signal: AbortSignal.timeout(3000) },
+    );
+    const data = (await res.json()) as { Answer?: Array<{ type: number; data: string }> };
+    return data.Answer?.find((answer) => answer.type === 1)?.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Connects to `address` while keeping the hostname for TLS (SNI) and the Host header. */
+const pinnedLookup =
+  (address: string): LookupFunction =>
+  (_hostname, options, callback) => {
+    if (options.all) callback(null, [{ address, family: 4 }]);
+    else callback(null, address, 4);
+  };
 
 function healthCheck(url: string, lookup?: LookupFunction): Promise<boolean> {
   return new Promise((resolve) => {
@@ -46,11 +56,19 @@ function healthCheck(url: string, lookup?: LookupFunction): Promise<boolean> {
   });
 }
 
-/** Polls `${url}/health` until it answers, so the QR code doesn't point at a dead URL. */
-async function waitUntilReachable(url: string, timeoutMs: number, lookup?: LookupFunction) {
+/**
+ * Polls `${url}/health` until it answers, so the QR code doesn't point at a dead URL.
+ * With `viaPublicDns`, the hostname is resolved through DNS-over-HTTPS on every attempt.
+ */
+async function waitUntilReachable(url: string, timeoutMs: number, viaPublicDns = false) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    if (await healthCheck(url, lookup)) return true;
+    let lookup: LookupFunction | undefined;
+    if (viaPublicDns) {
+      const address = await resolveWithDoh(new URL(url).hostname);
+      lookup = address ? pinnedLookup(address) : undefined;
+    }
+    if ((!viaPublicDns || lookup) && (await healthCheck(url, lookup))) return true;
     await sleep(1000);
   }
   return false;
@@ -133,7 +151,7 @@ export async function startCloudflareTunnel(port: number): Promise<Tunnel> {
     child.stdout?.off("data", collect);
     const url = output.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/)?.[0];
     if (!url) throw new TunnelError("cloudflared connected but did not print a tunnel URL.");
-    const reachable = await waitUntilReachable(url, 30_000, publicLookup);
+    const reachable = await waitUntilReachable(url, 30_000, true);
     return {
       url,
       label: "Cloudflare quick tunnel",

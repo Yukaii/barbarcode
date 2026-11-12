@@ -22,3 +22,22 @@ jobs:
       - run: pnpm test
       - name: CLI smoke test
         run: node packages/cli/dist/cli.mjs --help
+
+  binary:
+    # Catches Bun incompatibilities before a release.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.4"
+      - run: pnpm build
+      - run: node packages/cli/scripts/build-binaries.mjs --host
+      - name: Smoke test the standalone executable
+        run: |
+          bin=packages/cli/dist-bin/barbarcode-linux-x64
+          $bin --version
+          $bin --via lan --port 47100 --dry-run > lan.log 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:47100/health && break; sleep 0.5; done
+          curl -fs http://127.0.0.1:47100/s/AAAAAAAAAAAAAAAAAAAAAA | grep -q 'Barbarcode Scanner'

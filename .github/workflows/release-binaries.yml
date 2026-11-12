@@ -1,0 +1,131 @@
+name: Release binaries
+
+# On a version tag: compile standalone executables with Bun, test each installer on a real
+# system, then attach the executables to a GitHub release. install.sh / install.ps1 (served from
+# barbarcode.yukai.dev) download from the latest release.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+env:
+  BUN_VERSION: "1.4.4"
+
+jobs:
+  build:
+    # macOS so the macOS executables are signed natively (Apple Silicon refuses unsigned code).
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Check the tag matches the package version
+        run: |
+          version="v$(node -p "require('./packages/cli/package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match packages/cli/package.json ($version)"
+            exit 1
+          fi
+
+      - run: pnpm build
+      - run: pnpm --filter barbarcode run build:bin
+
+      - name: Check macOS signatures
+        run: codesign --verify packages/cli/dist-bin/barbarcode-darwin-*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release
+          path: packages/cli/dist-bin/release/
+          if-no-files-found: error
+
+  test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-latest }
+          - { name: linux-arm64, os: ubuntu-24.04-arm }
+          - { name: linux-x64-musl, os: ubuntu-latest, alpine: true }
+          - { name: darwin-arm64, os: macos-latest }
+          - { name: windows-x64, os: windows-latest }
+    name: test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: release
+
+      - name: Serve the release assets locally
+        shell: bash
+        run: |
+          cd release
+          python="$(command -v python3 || command -v python)"
+          "$python" -m http.server 8765 --bind 127.0.0.1 > /dev/null 2>&1 &
+          sleep 2
+
+      - name: install.sh
+        if: runner.os != 'Windows' && !matrix.alpine
+        run: |
+          BARBARCODE_DOWNLOAD_URL=http://127.0.0.1:8765 sh packages/landing/public/install.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Check the installed command (macOS, Linux)
+        if: runner.os != 'Windows' && !matrix.alpine
+        run: |
+          test "$(barbarcode --version)" = "${GITHUB_REF_NAME#v}"
+          barbarcode --via lan --port 47100 --dry-run > lan.log 2>&1 &
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:47100/health && break; sleep 0.5; done
+          curl -fs http://127.0.0.1:47100/s/AAAAAAAAAAAAAAAAAAAAAA | grep -q 'Barbarcode Scanner'
+          echo " ok"
+
+      - name: install.sh on Alpine (musl)
+        if: matrix.alpine
+        run: |
+          docker run --rm --network host -v "$PWD:/w" -w /w alpine:3.22 sh -c '
+            apk add --no-cache curl libstdc++ libgcc > /dev/null &&
+            BARBARCODE_DOWNLOAD_URL=http://127.0.0.1:8765 sh packages/landing/public/install.sh &&
+            test "$(/root/.local/bin/barbarcode --version)" = "${0#v}"' "$GITHUB_REF_NAME"
+
+      - name: install.ps1 (run the way users do, irm | iex)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $env:BARBARCODE_DOWNLOAD_URL = 'http://127.0.0.1:8765'
+          Get-Content packages/landing/public/install.ps1 -Raw | Invoke-Expression
+          $version = barbarcode --version
+          if ($version -ne $env:GITHUB_REF_NAME.TrimStart('v')) { throw "unexpected version: $version" }
+          $p = Start-Process barbarcode -ArgumentList '--via','lan','--port','47100','--dry-run' -PassThru -WindowStyle Hidden
+          $ok = $false
+          foreach ($i in 1..20) {
+            try { Invoke-WebRequest -UseBasicParsing http://127.0.0.1:47100/health | Out-Null; $ok = $true; break } catch { Start-Sleep -Milliseconds 500 }
+          }
+          Stop-Process $p
+          if (-not $ok) { throw 'local server did not start' }
+
+  release:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: release
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release/* --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi

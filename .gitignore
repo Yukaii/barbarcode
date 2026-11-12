@@ -181,3 +181,4 @@ dist
 # copied in by `prepack`
 packages/cli/README.md
 packages/cli/LICENSE
+packages/cli/dist-bin/
