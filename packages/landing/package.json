@@ -1,6 +1,7 @@
 {
   "name": "@barbarcode/landing",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "render": "node scripts/render.mjs",

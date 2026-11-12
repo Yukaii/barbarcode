@@ -135,6 +135,14 @@ node packages/cli/dist/cli.mjs --relay http://localhost:8787 --dry-run
 Open the printed URL on the same computer (`localhost` counts as secure, so the camera works) to
 try the whole flow without a phone.
 
+### Releasing
+
+1. Bump `version` in `packages/cli/package.json` and merge it.
+2. `git tag v<version> && git push origin v<version>`
+
+The tag runs `.github/workflows/npm-publish.yml`, which tests, packs and publishes with npm
+[trusted publishing](https://docs.npmjs.com/trusted-publishers) (no npm token; provenance included).
+
 ## License
 
 MIT
