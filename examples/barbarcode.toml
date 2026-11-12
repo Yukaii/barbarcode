@@ -1,0 +1,30 @@
+# barbarcode keystroke profiles.
+# Pick one with `barbarcode -s <name>`, or switch live from the phone.
+
+# Profile used when -s is not given (defaults to the first one below).
+default = "inventory"
+
+[profiles]
+# Type the barcode, then press Enter.
+inventory = "{barcode}{enter}"
+
+# Press F4, type the barcode, press Enter.
+price_check = "{f4}{barcode}{enter}"
+
+# Fill a two-field form.
+data_entry = "SKU:{barcode}{tab}Quantity:"
+
+# Wait 500 ms, press F5, type the barcode, Tab, 1, Enter.
+complex_input = "{delay:500}{f5}{barcode}{tab}1{enter}"
+
+# Paste into a search box: focus it with Cmd/Ctrl+K, type, submit.
+search = "{cmd+k}{delay:150}{barcode}{enter}"
+
+# Syntax
+#   {barcode}             the scanned value (always typed literally)
+#   {enter} {tab} {esc} {space} {backspace} {delete}
+#   {up} {down} {left} {right} {home} {end} {pageup} {pagedown} {f1}…{f24}
+#   {ctrl+s} {cmd+shift+z} {alt+tab}   modifiers: ctrl shift alt/option cmd/meta/win
+#   {key:F4}              same as {f4} (0.1 syntax)
+#   {delay:250}           wait, in milliseconds
+#   {{ and }}             literal braces

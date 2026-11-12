@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbarcode - Scan with Ease</title>
+    <meta name="description" content="Barbarcode turns your phone into a barcode scanner for your computer. Fast, open-source, and easy to use.">
+    <meta name="keywords" content="barcode, scanner, open-source, inventory, QR code, mobile, automation, barbarcode">
+    <meta name="author" content="Yukaii">
+    <meta property="og:title" content="Barbarcode - Scan with Ease">
+    <meta property="og:description" content="Turn your phone into a barcode scanner for your computer, instantly. Open-source and easy to use.">
+    <meta property="og:image" content="https://github.com/Yukaii/barbarcode/raw/main/landing/images/ui.jpeg">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/Yukaii/barbarcode">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Barbarcode - Scan with Ease">
+    <meta name="twitter:description" content="Turn your phone into a barcode scanner for your computer, instantly. Open-source and easy to use.">
+    <meta name="twitter:image" content="https://github.com/Yukaii/barbarcode/raw/main/landing/images/ui.jpeg">
+</head>
+<body class="bg-[#1e1e1e] text-[#d4d4d4] font-mono leading-relaxed m-0 p-5">
+    <div class="max-w-[900px] mx-auto overflow-hidden">
+        <header>
+            <h1 class="text-[#4ec9b0] text-2xl mb-2 whitespace-nowrap">barbarcode> <span class="cursor"></span></h1>
+        </header>
+
+        <section id="intro" class="text-center py-12 mb-8">
+            <h1 class="text-5xl md:text-6xl font-bold text-[#4ec9b0] mb-8 tracking-tight">Barbarcode</h1>
+            <p class="text-xl md:text-2xl text-[#d4d4d4] max-w-2xl mx-auto">Turn your phone into a barcode scanner for your computer, instantly.</p>
+        </section>
+
+<section id="server-startup" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
+    <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Server Startup</h2>
+    <div class="terminal-window max-w-[650px] mx-auto my-6 rounded-lg shadow-lg border border-[#222] bg-[#1e1e1e]">
+        <div class="terminal-chrome flex items-center px-4 py-2 rounded-t-lg bg-[#23272e] border-b border-[#222]">
+            <span class="w-3 h-3 rounded-full bg-[#ff5f56] mr-2 border border-[#e0443e]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#ffbd2e] mr-2 border border-[#dea123]"></span>
+            <span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#13a10e]"></span>
+            <span class="ml-4 text-xs text-[#888] select-none">barbarcode — bash</span>
+        </div>
+        <div class="terminal-body p-4 min-h-[150px] text-sm overflow-y-auto font-mono">
+            <pre id="terminal-output" class="whitespace-pre-wrap m-0"></pre>
+        </div>
+    </div>
+</section>
+
+        <section id="installation" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
+            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Installation</h2>
+            <div>
+                <p class="mb-4">Get started with Barbarcode quickly. You can install it globally using npm or run it directly with npx.</p>
+                <h3 class="mb-3">Install Globally:</h3>
+                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npm install -g barbarcode</code></pre>
+                <p class="mb-4">Then, you can run <code>barbarcode</code> from anywhere in your terminal.</p>
+                
+                <h3 class="mb-3">Or use npx (no installation needed):</h3>
+                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-shell block">npx barbarcode -s inventory</code></pre>
+                <p class="mb-4">This is great for trying it out or for occasional use.</p>
+                <p class="mb-4 text-xs text-[#888]">The npm package is automatically built and published using GitHub Actions for every release.</p>
+            </div>
+        </section>
+
+        <section id="configuration" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
+            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Flexible Configuration</h2>
+            <div>
+                <p class="mb-4">Easily define keystroke mappings in a simple <code>barbarcode.toml</code> file (<code>npx barbarcode init</code>). Tailor Barbarcode to your exact workflow.</p>
+                <pre class="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded overflow-x-auto border border-[#333] mb-4"><code class="language-toml font-mono block">
+[sessions]
+# Press Enter after the barcode
+inventory_input = "{barcode}{enter}"
+
+# Press F4, then type barcode, then Enter
+price_check = "{key:F4}{barcode}{enter}"
+
+# Type SKU:, the barcode, Tab, then Quantity:
+data_entry = "SKU:{barcode}{tab}Quantity:"
+
+# Wait 500ms, press F5, type barcode, Tab, 1, Enter
+complex_input = "{delay:500}{key:F5}{barcode}{tab}1{enter}"
+                </code></pre>
+                <p class="mb-4">Supports special keys, delays, and custom text for ultimate control.</p>
+            </div>
+        </section>
+
+        <section id="mobile-scan" class="bg-[#252526] mb-8 p-5 rounded-lg border border-[#333]">
+            <h2 class="text-[#569cd6] border-b border-[#333] pb-2 mb-6 mt-0">Scan with Your Mobile</h2>
+            <div class="text-center">
+                <p class="mb-4">Scan the QR code displayed by the server with your mobile device. No app installation needed!</p>
+                <img src="images/ui.jpeg" alt="Mobile scanning QR code" class="max-w-[250px] mx-auto my-2 border-4 border-[#444] rounded-lg" id="mobile-scan-img">
+                <p class="mb-4">Your phone becomes a powerful barcode scanner, seamlessly sending data to your computer.</p>
+            </div>
+        </section>
+
+        <footer class="text-center mt-10 pt-5 border-t border-[#333] text-sm">
+            <p>Barbarcode is open-source (MIT License). Check it out on <a href="https://github.com/Yukaii/barbarcode" target="_blank" class="text-[#569cd6] hover:underline">GitHub</a>.</p>
+        </footer>
+    </div>
+    <script type="module" src="js/main.mjs"></script>
+</body>
+</html>

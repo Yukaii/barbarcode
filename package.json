@@ -1,52 +1,26 @@
 {
-  "name": "barbarcode",
-  "version": "0.1.1",
+  "name": "barbarcode-monorepo",
+  "private": true,
   "type": "module",
-  "main": "dist/server.cjs",
-  "bin": {
-    "barbarcode": "./dist/server.cjs"
+  "packageManager": "pnpm@11.3.0",
+  "engines": {
+    "node": ">=22"
   },
-  "files": [
-    "dist/",
-    "LICENSE"
-  ],
   "scripts": {
-    "clean": "rm -rf dist",
-    "build:server": "tsc -p tsconfig.app.json",
-    "build:landing": "vite build --config landing.vite.config.ts",
-    "build": "vite build && pnpm run build:server",
-    "start": "node dist/server.cjs",
-    "dev": "vite",
-    "dev:landing": "vite --config landing.vite.config.ts",
-    "lint": "biome lint .",
-    "format": "biome format . --write",
-    "prepublishOnly": "pnpm run build"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "commander": "^12.1.0",
-    "express": "^4.19.2",
-    "jquery": "^3.7.1",
-    "ngrok": "5.0.0-beta.2",
-    "qr": "^0.4.2",
-    "quagga": "^0.12.1",
-    "robotjs": "^0.6.0",
-    "toml": "^3.0.0",
-    "ws": "^8.18.0"
+    "build": "pnpm -r --filter './packages/*' run build",
+    "dev": "pnpm --filter barbarcode run dev",
+    "dev:web": "pnpm --filter @barbarcode/web run dev",
+    "dev:relay": "pnpm --filter @barbarcode/relay run dev",
+    "deploy:relay": "pnpm --filter @barbarcode/web run build && pnpm --filter @barbarcode/relay run deploy",
+    "test": "vitest run",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write ."
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.6",
-    "@types/express": "^5.0.1",
-    "@types/jquery": "^3.5.32",
-    "@types/node": "^22.15.17",
-    "@types/ws": "^8.18.1",
-    "autoprefixer": "^10.4.21",
-    "biome": "^0.3.3",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.6",
-    "tsx": "^4.19.4",
-    "vite": "^6.3.5"
+    "@biomejs/biome": "^2.6.0",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
   }
 }

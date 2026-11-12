@@ -1,43 +1,25 @@
-# GitHub Workflow for building and deploying landing page to gh-pages
-
-name: Deploy Landing Page to GitHub Pages
+name: Deploy landing page
 
 on:
   push:
-    branches:
-      - main # Or your default branch
+    branches: [main]
     paths:
-      - 'landing/**' # Only run if files in landing/ folder change
-      - '.github/workflows/deploy-landing.yml' # Or if the workflow file itself changes
+      - "packages/landing/**"
+      - ".github/workflows/deploy-landing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Allow write access to repository for gh-pages branch
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node, pnpm, and system dependencies
-        uses: ./.github/actions/setup
-        with:
-          node-version: '22'
-
-      - name: Build landing page
-        run: pnpm run build:landing
-
-      - name: Add CNAME for custom domain
-        run: echo "barbarcode.yukai.dev" > dist/landing/CNAME
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter @barbarcode/landing run build
+      - run: echo "barbarcode.yukai.dev" > packages/landing/dist/CNAME
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/landing # The directory to publish
-          # publish_branch: gh-pages # The branch to deploy to (default is gh-pages)
-          # user_name: 'github-actions[bot]' # Optional: Custom committer name
-          # user_email: 'github-actions[bot]@users.noreply.github.com' # Optional: Custom committer email
-          # commit_message: 'Deploy landing page to gh-pages' # Optional: Custom commit message
-          # force_orphan: true # Optional: Create a new orphan branch for gh-pages
+          publish_dir: ./packages/landing/dist

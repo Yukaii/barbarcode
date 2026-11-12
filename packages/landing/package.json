@@ -1,0 +1,15 @@
+{
+  "name": "@barbarcode/landing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "qr": "^0.4.2",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.8"
+  }
+}

@@ -1,7 +1,6 @@
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@tailwindcss/oxide'
-  - core-js
-  - esbuild
-  - ngrok
-  - robotjs
+packages:
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  workerd: true

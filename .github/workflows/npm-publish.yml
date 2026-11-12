@@ -2,25 +2,23 @@ name: Publish to npm
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing + provenance
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node, pnpm, and system dependencies
-        uses: ./.github/actions/setup
-        with:
-          node-version: '22'
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Publish to npm
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm build
+      - run: pnpm test
+      - name: Publish
+        working-directory: packages/cli
         env:
+          # Leave unset once trusted publishing is configured on npmjs.com.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public --no-git-checks
+        run: pnpm publish --access public --no-git-checks --provenance
