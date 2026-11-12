@@ -37,11 +37,25 @@
         <div class="hero-copy">
           <h1><span>{{heroLine1}}</span> <span>{{heroLine2}}</span></h1>
           <p class="lede">{{lede}}</p>
-          <div class="command">
-            <code id="command-text">npx barbarcode</code>
-            <button type="button" id="copy" class="copy">{{copy}}</button>
+          <div class="install">
+            <div class="install-tabs" role="tablist" aria-label="{{@installTabsLabel}}">
+              <button type="button" role="tab" id="tab-npx" aria-controls="install-panel" aria-selected="true"
+                data-prompt="$" data-command="npx barbarcode">npx</button>
+              <button type="button" role="tab" id="tab-unix" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="$" data-command="curl -fsSL https://barbarcode.yukai.dev/install.sh | sh">macOS / Linux</button>
+              <button type="button" role="tab" id="tab-windows" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="PS>" data-command="irm https://barbarcode.yukai.dev/install.ps1 | iex">Windows</button>
+            </div>
+            <div id="install-panel" role="tabpanel" aria-labelledby="tab-npx">
+              <div class="command">
+                <code id="command-text" data-prompt="$">npx barbarcode</code>
+                <button type="button" id="copy" class="copy">{{copy}}</button>
+              </div>
+              <p class="fineprint" data-for="tab-npx">{{fineNpx}}</p>
+              <p class="fineprint" data-for="tab-unix" hidden>{{fineUnix}}</p>
+              <p class="fineprint" data-for="tab-windows" hidden>{{fineWindows}}</p>
+            </div>
           </div>
-          <p class="fineprint">{{fineprint}}</p>
         </div>
 
         <figure class="stage" aria-label="{{@stageLabel}}">

@@ -16,19 +16,52 @@ const keys = Object.fromEntries(
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 // ----------------------------------------------------------------------------- copy command
-$("copy").addEventListener("click", async (event) => {
-  const button = event.currentTarget;
-  const label = button.textContent;
+const copyButton = $("copy");
+const copyLabel = copyButton.textContent;
+let copyReset;
+copyButton.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText($("command-text").textContent);
-    button.textContent = PAGE.copied;
+    copyButton.textContent = PAGE.copied;
   } catch {
-    button.textContent = PAGE.copyFailed;
+    copyButton.textContent = PAGE.copyFailed;
   }
-  setTimeout(() => {
-    button.textContent = label;
+  clearTimeout(copyReset);
+  copyReset = setTimeout(() => {
+    copyButton.textContent = copyLabel;
   }, 1600);
 });
+
+// ------------------------------------------------------------------------------ install tabs
+const tabs = [...document.querySelectorAll('.install-tabs [role="tab"]')];
+
+function selectTab(tab) {
+  for (const t of tabs) {
+    const selected = t === tab;
+    t.setAttribute("aria-selected", String(selected));
+    t.tabIndex = selected ? 0 : -1;
+  }
+  const command = $("command-text");
+  command.textContent = tab.dataset.command;
+  command.dataset.prompt = tab.dataset.prompt;
+  command.scrollLeft = 0;
+  $("install-panel").setAttribute("aria-labelledby", tab.id);
+  for (const note of document.querySelectorAll(".install .fineprint")) {
+    note.hidden = note.dataset.for !== tab.id;
+  }
+}
+
+for (const tab of tabs) {
+  tab.addEventListener("click", () => selectTab(tab));
+  // Arrow keys move between tabs (the standard tablist keyboard pattern).
+  tab.addEventListener("keydown", (event) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    if (!step) return;
+    const next = tabs[(tabs.indexOf(tab) + step + tabs.length) % tabs.length];
+    selectTab(next);
+    next.focus();
+  });
+}
 
 // ------------------------------------------------------------------------------- demo
 function showItem(item) {
