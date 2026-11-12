@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="{{htmlLang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{@title}}</title>
+    <meta name="description" content="{{@description}}" />
+    <meta name="theme-color" content="#EEF0EC" />
+    <link rel="canonical" href="{{canonical}}" />
+    {{alternates}}
+    <meta property="og:title" content="{{@title}}" />
+    <meta property="og:description" content="{{@ogDescription}}" />
+    <meta property="og:image" content="https://barbarcode.yukai.dev/og.png" />
+    <meta property="og:url" content="{{canonical}}" />
+    <meta property="og:locale" content="{{ogLocale}}" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23FFD23F'/><path d='M8 8v16M11 8v16M15 8v16M17 8v16M21 8v16M24 8v16' stroke='black' stroke-width='1.8'/><path d='M5 16h22' stroke='%23FF2D20' stroke-width='1.6'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="{{fonts}}" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="{{home}}">barbarcode</a>
+      <div class="header-links">
+        <nav aria-label="{{@langNavLabel}}" class="lang-nav">{{langNav}}</nav>
+        <nav aria-label="{{@projectNavLabel}}">
+          <a href="https://github.com/Yukaii/barbarcode">GitHub</a>
+          <a href="https://www.npmjs.com/package/barbarcode">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1><span>{{heroLine1}}</span> <span>{{heroLine2}}</span></h1>
+          <p class="lede">{{lede}}</p>
+          <div class="command">
+            <code id="command-text">npx barbarcode</code>
+            <button type="button" id="copy" class="copy">{{copy}}</button>
+          </div>
+          <p class="fineprint">{{fineprint}}</p>
+        </div>
+
+        <figure class="stage" aria-label="{{@stageLabel}}">
+          <div class="tag" id="tag">
+            <div class="tag-head">
+              <span class="tag-name" id="tag-name"></span>
+              <span class="tag-price" id="tag-price"></span>
+            </div>
+            <div class="tag-barcode" id="tag-barcode"></div>
+            <div class="laser" id="laser" aria-hidden="true"></div>
+          </div>
+
+          <div class="sheet">
+            <div class="sheet-title">{{sheetTitle}}</div>
+            <table>
+              <thead>
+                <tr><th scope="col">{{sheetSku}}</th><th scope="col">{{sheetQty}}</th></tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <figcaption class="keystrip">
+            <span class="keystrip-label">{{keystripLabel}}</span>
+            <kbd class="key key-text" data-key="text" id="key-code">4006381333931</kbd>
+            <kbd class="key" data-key="tab">Tab</kbd>
+            <kbd class="key" data-key="one">1</kbd>
+            <kbd class="key" data-key="enter">Enter</kbd>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="steps" aria-labelledby="steps-title">
+        <h2 id="steps-title">{{stepsTitle}}</h2>
+        <ol>
+          <li>
+            <h3>{{step1Title}}</h3>
+            <p>{{step1Body}}</p>
+          </li>
+          <li>
+            <h3>{{step2Title}}</h3>
+            <p>{{step2Body}}</p>
+          </li>
+          <li>
+            <h3>{{step3Title}}</h3>
+            <p>{{step3Body}}</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="profiles" aria-labelledby="profiles-title">
+        <div class="section-intro">
+          <h2 id="profiles-title">{{profilesTitle}}</h2>
+          <p>{{profilesIntro}}</p>
+        </div>
+        <table class="profile-table">
+          <thead>
+            <tr><th scope="col">{{colProfile}}</th><th scope="col">{{colPattern}}</th><th scope="col">{{colTypes}}</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">inventory</th>
+              <td><code>{barcode}{enter}</code></td>
+              <td><kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">price_check</th>
+              <td><code>{f4}{barcode}{enter}</code></td>
+              <td><kbd class="key">F4</kbd> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">data_entry</th>
+              <td><code>SKU:{barcode}{tab}Quantity:</code></td>
+              <td><kbd class="key key-text">SKU:4006381333931</kbd> <kbd class="key">Tab</kbd> <kbd class="key key-text">Quantity:</kbd></td>
+            </tr>
+            <tr>
+              <th scope="row">search</th>
+              <td><code>{cmd+k}{delay:150}{barcode}{enter}</code></td>
+              <td><kbd class="key">⌘ K</kbd> <span class="wait">{{wait150}}</span> <kbd class="key key-text">4006381333931</kbd> <kbd class="key">Enter</kbd></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">{{profilesNote}}</p>
+      </section>
+
+      <section class="connect" aria-labelledby="connect-title">
+        <div class="section-intro">
+          <h2 id="connect-title">{{connectTitle}}</h2>
+          <p>{{connectIntro}}</p>
+        </div>
+        <table class="mode-table">
+          <thead>
+            <tr><th scope="col">{{colCommand}}</th><th scope="col">{{colConnects}}</th><th scope="col">{{colNeed}}</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row"><code>npx barbarcode</code></th>
+              <td>{{relayHow}}</td>
+              <td>{{relayNeed}}</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via cloudflare</code></th>
+              <td>{{cloudflareHow}}</td>
+              <td>{{cloudflareNeed}}</td>
+            </tr>
+            <tr>
+              <th scope="row"><code>--via tailscale</code></th>
+              <td>{{tailscaleHow}}</td>
+              <td>{{tailscaleNeed}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">{{connectNote}}</p>
+      </section>
+
+      <section class="platforms" aria-labelledby="platforms-title">
+        <h2 id="platforms-title">{{platformsTitle}}</h2>
+        <dl>
+          <div>
+            <dt>macOS</dt>
+            <dd>{{macos}}</dd>
+          </div>
+          <div>
+            <dt>Windows</dt>
+            <dd>{{windows}}</dd>
+          </div>
+          <div>
+            <dt>Linux</dt>
+            <dd>{{linux}}</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>{{footer}}</p>
+    </footer>
+
+    <script type="application/json" id="page-data">{{pageData}}</script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
