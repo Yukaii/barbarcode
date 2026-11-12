@@ -1,24 +1,49 @@
 name: Publish to npm
 
+# Release: bump "version" in packages/cli/package.json, merge, then
+#   git tag v<version> && git push origin v<version>
+#
+# Authenticates with npm trusted publishing (OIDC): no npm token is stored anywhere.
+# One-time setup on npmjs.com → barbarcode → Settings → Trusted Publisher → GitHub Actions:
+#   owner Yukaii, repository barbarcode, workflow npm-publish.yml
+
 on:
   push:
     tags: ["v*.*.*"]
 
 permissions:
   contents: read
-  id-token: write # npm trusted publishing + provenance
+  id-token: write # lets npm verify this workflow via OIDC; also signs provenance
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup
+        with:
+          node-version: "24"
+
+      - name: Check the tag matches the package version
+        run: |
+          version="v$(node -p "require('./packages/cli/package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match packages/cli/package.json ($version)"
+            exit 1
+          fi
+
       - run: pnpm build
       - run: pnpm test
-      - name: Publish
+
+      # pnpm rewrites the workspace:* references; npm does the publishing, because trusted
+      # publishing needs npm >= 11.5.1.
+      - name: Pack
         working-directory: packages/cli
-        env:
-          # Leave unset once trusted publishing is configured on npmjs.com.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --access public --no-git-checks --provenance
+        run: pnpm pack --pack-destination "$RUNNER_TEMP"
+
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Publish
+        run: npm publish "$RUNNER_TEMP"/barbarcode-*.tgz --access public
