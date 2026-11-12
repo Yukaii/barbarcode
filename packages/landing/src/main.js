@@ -1,11 +1,9 @@
 import "./style.css";
 import { ean13Svg, withCheckDigit } from "./ean13.js";
 
-const ITEMS = [
-  { name: "Graphite pencil, HB", price: "1.20", code: withCheckDigit("400638133393") },
-  { name: "Dotted notebook, A5", price: "6.50", code: withCheckDigit("590123412345") },
-  { name: "Design Patterns (book)", price: "54.99", code: withCheckDigit("978020163361") },
-];
+// Localized demo data and button labels, written into the page by scripts/render.mjs.
+const PAGE = JSON.parse(document.getElementById("page-data").textContent);
+const ITEMS = PAGE.items.map((item) => ({ ...item, code: withCheckDigit(item.code) }));
 const MAX_ROWS = 4;
 
 const $ = (id) => document.getElementById(id);
@@ -20,21 +18,26 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 // ----------------------------------------------------------------------------- copy command
 $("copy").addEventListener("click", async (event) => {
   const button = event.currentTarget;
+  const label = button.textContent;
   try {
     await navigator.clipboard.writeText($("command-text").textContent);
-    button.textContent = "Copied";
+    button.textContent = PAGE.copied;
   } catch {
-    button.textContent = "Select and copy";
+    button.textContent = PAGE.copyFailed;
   }
   setTimeout(() => {
-    button.textContent = "Copy";
+    button.textContent = label;
   }, 1600);
 });
 
 // ------------------------------------------------------------------------------- demo
 function showItem(item) {
   $("tag-name").textContent = item.name;
-  $("tag-price").textContent = item.price;
+  const currency = Object.assign(document.createElement("span"), {
+    className: "currency",
+    textContent: item.currency,
+  });
+  $("tag-price").replaceChildren(currency, item.price);
   $("tag-barcode").innerHTML = ean13Svg(item.code);
   keyCode.textContent = item.code;
 }
