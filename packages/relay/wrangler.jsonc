@@ -16,7 +16,7 @@
     "bindings": [{ "name": "ROOM", "class_name": "Room" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
-  "observability": { "enabled": true }
-  // To serve from your own domain (zone must be on Cloudflare), uncomment:
-  // "routes": [{ "pattern": "scan.barbarcode.yukai.dev", "custom_domain": true }]
+  "observability": { "enabled": true },
+  // Custom Domains also issue a certificate for multi-level subdomains like this one.
+  "routes": [{ "pattern": "scan.barbarcode.yukai.dev", "custom_domain": true }]
 }
