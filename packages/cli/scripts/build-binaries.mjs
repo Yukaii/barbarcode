@@ -67,6 +67,13 @@ function compile(name) {
     ],
     { cwd, stdio: ["ignore", "ignore", "inherit"] },
   );
+  if (name.startsWith("darwin") && platform() === "darwin") {
+    // Bun's ad-hoc signature on a cross-compiled darwin-x64 binary doesn't verify, and macOS
+    // refuses to run code with a broken signature. Signing again (ad hoc) fixes it.
+    execFileSync("codesign", ["--force", "--sign", "-", fileURLToPath(new URL(file, outDir))], {
+      stdio: ["ignore", "ignore", "inherit"],
+    });
+  }
   return file;
 }
 
