@@ -1,6 +1,6 @@
 {
   "name": "barbarcode",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Turn your phone into a barcode scanner that types into your computer.",
   "license": "MIT",
   "type": "module",
@@ -34,7 +34,8 @@
     "build": "tsdown && node scripts/copy-web.mjs",
     "start": "node dist/cli.mjs",
     "typecheck": "tsc -p .",
-    "prepack": "cp ../../README.md ../../LICENSE ."
+    "prepack": "cp ../../README.md ../../LICENSE .",
+    "build:bin": "node scripts/build-binaries.mjs"
   },
   "dependencies": {
     "smol-toml": "^1.9.1",

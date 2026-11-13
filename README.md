@@ -9,7 +9,17 @@ Turn your phone into a barcode scanner that types into your computer, like a USB
 npx barbarcode
 ```
 
-A QR code appears in your terminal. Scan it with your phone's camera, point the phone at a
+No Node.js? Install the standalone executable instead (one file, nothing else needed):
+
+```sh
+# macOS and Linux
+curl -fsSL https://barbarcode.yukai.dev/install.sh | sh
+
+# Windows (PowerShell)
+irm https://barbarcode.yukai.dev/install.ps1 | iex
+```
+
+Either way, a QR code appears in your terminal. Scan it with your phone's camera, point the phone at a
 barcode, and the value is typed into whatever window is focused on your computer. No app to
 install, no account, nothing to configure.
 
@@ -135,13 +145,30 @@ node packages/cli/dist/cli.mjs --relay http://localhost:8787 --dry-run
 Open the printed URL on the same computer (`localhost` counts as secure, so the camera works) to
 try the whole flow without a phone.
 
+### Standalone executables
+
+`pnpm --filter barbarcode run build:bin` compiles the CLI and the phone page into one executable
+per platform with [Bun](https://bun.sh) (`--host` builds only yours). Release targets: Linux x64 and
+arm64 (glibc and musl), macOS x64 and arm64, Windows x64 and arm64. x64 builds use Bun's baseline
+runtime, so they also run on CPUs without AVX2. Each executable is about 90–110 MB (the Bun runtime
+is inside); the compressed downloads are 40–50 MB.
+
+The installers (`packages/landing/public/install.sh`, `install.ps1`, served from
+barbarcode.yukai.dev) verify the SHA-256 checksum and install for the current user only. Re-run
+them to upgrade. They accept `BARBARCODE_VERSION` and `BARBARCODE_INSTALL_DIR`.
+
 ### Releasing
 
 1. Bump `version` in `packages/cli/package.json` and merge it.
 2. `git tag v<version> && git push origin v<version>`
 
-The tag runs `.github/workflows/npm-publish.yml`, which tests, packs and publishes with npm
-[trusted publishing](https://docs.npmjs.com/trusted-publishers) (no npm token; provenance included).
+The tag runs two workflows:
+
+- `npm-publish.yml` tests, packs and publishes to npm with
+  [trusted publishing](https://docs.npmjs.com/trusted-publishers) (no npm token; provenance
+  included).
+- `release-binaries.yml` builds the executables, tests both installers on Linux (x64, arm64,
+  Alpine), macOS and Windows, then attaches the executables to a GitHub release.
 
 ## License
 

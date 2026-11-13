@@ -1,11 +1,9 @@
-import { createReadStream, existsSync } from "node:fs";
-import { stat } from "node:fs/promises";
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { MAX_FRAME_BYTES, type SystemMessage } from "@barbarcode/protocol";
 import { WebSocket, WebSocketServer } from "ws";
+import type { WebAssets } from "../web-assets";
 import type { TransportHandlers } from "./types";
 
 const MIME: Record<string, string> = {
@@ -17,16 +15,6 @@ const MIME: Record<string, string> = {
   ".png": "image/png",
   ".json": "application/json",
 };
-
-/** Finds the built phone page: bundled next to the CLI, or the workspace build in development. */
-export function resolveWebRoot(): string {
-  const candidates = ["./web/", "../../web/dist/", "../web/dist/"].map((p) =>
-    fileURLToPath(new URL(p, import.meta.url)),
-  );
-  const found = candidates.find((dir) => existsSync(path.join(dir, "index.html")));
-  if (!found) throw new Error("Phone page not found. Run `pnpm build` first.");
-  return found;
-}
 
 export interface LocalServer {
   port: number;
@@ -42,11 +30,11 @@ export async function startLocalServer(opts: {
   sessionId: string;
   host: string;
   port: number;
-  webRoot: string;
+  assets: WebAssets;
   on: TransportHandlers;
 }): Promise<LocalServer> {
-  const root = path.resolve(opts.webRoot);
-  const indexHtml = path.join(root, "index.html");
+  const indexHtml = await opts.assets.read("index.html");
+  if (!indexHtml) throw new Error("Phone page is missing index.html");
 
   const server: Server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", "http://local");
@@ -55,22 +43,25 @@ export async function startLocalServer(opts: {
       res.end('{"ok":true,"service":"barbarcode"}');
       return;
     }
-    let file = indexHtml;
+    let relativePath = "";
     try {
-      file = path.join(root, decodeURIComponent(url.pathname));
+      relativePath = decodeURIComponent(url.pathname).replace(/^\/+/, "");
     } catch {
       // malformed escape sequence: serve the page
     }
-    if (!file.startsWith(root + path.sep) || !(await stat(file).catch(() => null))?.isFile()) {
-      file = indexHtml; // single-page app fallback (/s/<session>)
-    }
+    const isPage = relativePath === "" || relativePath === "index.html";
+    const asset = isPage ? null : await opts.assets.read(relativePath);
+    // Anything that isn't a file (e.g. /s/<session>) gets the single-page app.
+    const body = asset ?? indexHtml;
     res.writeHead(200, {
-      "content-type": MIME[path.extname(file)] ?? "application/octet-stream",
-      "cache-control": file === indexHtml ? "no-store" : "public, max-age=31536000, immutable",
+      "content-type": asset
+        ? (MIME[path.extname(relativePath)] ?? "application/octet-stream")
+        : MIME[".html"],
+      "cache-control": asset ? "public, max-age=31536000, immutable" : "no-store",
       "x-content-type-options": "nosniff",
       "referrer-policy": "no-referrer",
     });
-    createReadStream(file).pipe(res);
+    res.end(body);
   });
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: MAX_FRAME_BYTES });

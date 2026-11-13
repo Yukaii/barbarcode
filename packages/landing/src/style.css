@@ -172,7 +172,37 @@ h3 {
   margin: 28px 0 32px;
 }
 
+.install {
+  max-width: 100%;
+}
+
+.install-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.install-tabs [role="tab"] {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 0.9375rem var(--body);
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.install-tabs [role="tab"]:hover {
+  color: var(--ink);
+}
+
+.install-tabs [role="tab"][aria-selected="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .command {
+  max-width: 100%;
   display: inline-flex;
   align-items: stretch;
   border: 2px solid var(--ink);
@@ -182,13 +212,17 @@ h3 {
 }
 
 .command code {
+  min-width: 0;
   padding: 14px 20px;
   font-size: 1.05rem;
   color: var(--ink);
+  /* Long install commands scroll inside the box instead of widening the page. */
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .command code::before {
-  content: "$ ";
+  content: attr(data-prompt) " ";
   color: var(--muted);
 }
 
