@@ -22,8 +22,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&amp;family=Big+Shoulders+Display:wght@700;900&amp;family=Martian+Mono:wght@400;500&amp;family=Noto+Sans+JP:wght@400;600;900&amp;display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/main-BCPxuPoY.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-CW8z7IcN.css">
+    <script type="module" crossorigin src="/assets/main-Jr3evX43.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-526gZSDy.css">
   </head>
   <body>
     <header class="site-header">
@@ -42,11 +42,25 @@
         <div class="hero-copy">
           <h1><span>スマホでスキャン。</span> <span>パソコンに自動入力。</span></h1>
           <p class="lede">スマホのカメラをバーコードに向けるだけで、パソコンで開いているアプリにそのまま入力されます。USB バーコードリーダーと同じ感覚です。スキャンのたびに Tab や Enter、好きなショートカットも送れます。</p>
-          <div class="command">
-            <code id="command-text">npx barbarcode</code>
-            <button type="button" id="copy" class="copy">コピー</button>
+          <div class="install">
+            <div class="install-tabs" role="tablist" aria-label="インストール方法">
+              <button type="button" role="tab" id="tab-npx" aria-controls="install-panel" aria-selected="true"
+                data-prompt="$" data-command="npx barbarcode">npx</button>
+              <button type="button" role="tab" id="tab-unix" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="$" data-command="curl -fsSL https://barbarcode.yukai.dev/install.sh | sh">macOS / Linux</button>
+              <button type="button" role="tab" id="tab-windows" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="PS>" data-command="irm https://barbarcode.yukai.dev/install.ps1 | iex">Windows</button>
+            </div>
+            <div id="install-panel" role="tabpanel" aria-labelledby="tab-npx">
+              <div class="command">
+                <code id="command-text" data-prompt="$">npx barbarcode</code>
+                <button type="button" id="copy" class="copy">コピー</button>
+              </div>
+              <p class="fineprint" data-for="tab-npx">パソコンに Node.js 22 以上が必要です。スマホにアプリは不要、アカウント登録もいりません。</p>
+              <p class="fineprint" data-for="tab-unix" hidden><code>~/.local/bin</code> に実行ファイルを1つ置くだけです。Node.js は不要です。</p>
+              <p class="fineprint" data-for="tab-windows" hidden>PowerShell で実行してください。実行ファイル1つだけで、Node.js は不要です。</p>
+            </div>
           </div>
-          <p class="fineprint">パソコンに Node.js 22 以上が必要です。スマホにアプリは不要、アカウント登録もいりません。</p>
         </div>
 
         <figure class="stage" aria-label="アニメーション例：バーコードを読み取り、スプレッドシートに入力する様子">

@@ -22,8 +22,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600&amp;family=Big+Shoulders+Display:wght@700;900&amp;family=Martian+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;600;900&amp;display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="/assets/main-BCPxuPoY.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-CW8z7IcN.css">
+    <script type="module" crossorigin src="/assets/main-Jr3evX43.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-526gZSDy.css">
   </head>
   <body>
     <header class="site-header">
@@ -42,11 +42,25 @@
         <div class="hero-copy">
           <h1><span>用手機掃條碼，</span> <span>自動輸入到電腦。</span></h1>
           <p class="lede">把手機相機對準條碼，內容就會輸入到電腦上目前開著的視窗，就像 USB 條碼掃描器一樣。每次掃描後還能自動按 Tab、Enter 或任何快速鍵。</p>
-          <div class="command">
-            <code id="command-text">npx barbarcode</code>
-            <button type="button" id="copy" class="copy">複製</button>
+          <div class="install">
+            <div class="install-tabs" role="tablist" aria-label="安裝方式">
+              <button type="button" role="tab" id="tab-npx" aria-controls="install-panel" aria-selected="true"
+                data-prompt="$" data-command="npx barbarcode">npx</button>
+              <button type="button" role="tab" id="tab-unix" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="$" data-command="curl -fsSL https://barbarcode.yukai.dev/install.sh | sh">macOS / Linux</button>
+              <button type="button" role="tab" id="tab-windows" aria-controls="install-panel" aria-selected="false" tabindex="-1"
+                data-prompt="PS>" data-command="irm https://barbarcode.yukai.dev/install.ps1 | iex">Windows</button>
+            </div>
+            <div id="install-panel" role="tabpanel" aria-labelledby="tab-npx">
+              <div class="command">
+                <code id="command-text" data-prompt="$">npx barbarcode</code>
+                <button type="button" id="copy" class="copy">複製</button>
+              </div>
+              <p class="fineprint" data-for="tab-npx">電腦需要 Node.js 22 以上版本。手機不用裝 App，也不用註冊帳號。</p>
+              <p class="fineprint" data-for="tab-unix" hidden>只會在 <code>~/.local/bin</code> 安裝一個執行檔，不需要 Node.js。</p>
+              <p class="fineprint" data-for="tab-windows" hidden>請在 PowerShell 中執行。只會安裝一個執行檔，不需要 Node.js。</p>
+            </div>
           </div>
-          <p class="fineprint">電腦需要 Node.js 22 以上版本。手機不用裝 App，也不用註冊帳號。</p>
         </div>
 
         <figure class="stage" aria-label="動畫示範：掃描條碼後，內容自動輸入到試算表">
